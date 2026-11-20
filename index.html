@@ -20,6 +20,7 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
 #upload-screen.hidden{display:none}
 #upload-screen h1{font-weight:400;letter-spacing:0.3em;color:#000000}
 #upload-screen .subtitle{letter-spacing:0.2em;color:#555555;margin-top:-18px}
+#load-error{display:none;width:min(620px,92vw);padding:10px 14px;border:1px solid #b00020;color:#b00020;text-align:center;line-height:1.5;word-break:break-word}
 #upload-screen .nav-hint{letter-spacing:0.08em;color:#888888;text-align:center;line-height:1.6;margin-top:-14px}
 
 .room-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;width:min(620px,92vw)}
@@ -127,7 +128,7 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
 <div id="upload-screen">
   <h1>walk and fly</h1>
   <p class="subtitle">Choose a room or upload your own file, for PC/mobile/VR</p>
-  <p class="nav-hint">Navigation PC: Walking WASD, Flying TAB, Space = up, Alt = down, E/R = faster/slower, Q = level horizon, Mouse = look, double click = go to point<br>Mobile: Use the Joystick (right), the Speed Bar (left), the Walk/Fly Button and the Level Button, touch the screen to look, double tap = go to point / VR: Teleportation</p>
+  <p class="nav-hint">Navigation PC: Walking WASD, Flying TAB, Space = up, Alt = down, E/R = faster/slower, T/G = shift image, Q = level horizon, Mouse = look, double click = go to point<br>Mobile: Use the Joystick (right), the Speed Bar (left), the Walk/Fly Button and the Level Button, touch the screen to look, double tap = go to point / VR: Teleportation</p>
   
   <div class="room-grid" id="room-grid">
     <!-- Räume werden dynamisch aus ROOMS generiert -->
@@ -138,6 +139,7 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
   <div id="drop-zone">
     <p>Drag or upload your own 3D scan / design here.<br>The 3D file format is GLB (.glb).</p>
   </div>
+  <p id="load-error"></p>
   <input type="file" id="file-input" accept=".glb,.GLB,model/gltf-binary,application/octet-stream,*/*" />
 
 </div>
@@ -149,6 +151,7 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
     <span class="key">TAB</span><span>Walk / Fly</span>
     <span class="key">Space / Alt</span><span>Up / Down (Fly)</span>
     <span class="key">E / R</span><span>Faster / Slower</span>
+    <span class="key">T / G</span><span>Shift image up / down</span>
     <span class="key">Q</span><span>Level horizon</span>
     <span class="key">Mouse</span><span>Look around</span>
     <span class="key">Double click</span><span>Go to point</span>
@@ -238,6 +241,8 @@ import { DRACOLoader }         from 'three/addons/loaders/DRACOLoader.js';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 import { VRButton }            from 'three/addons/webxr/VRButton.js';
 import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast } from 'three-mesh-bvh';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
 
 // Beschleunigte Raycasts (BVH): Ohne BVH prüft jeder Strahl ALLE Dreiecke
 // eines Meshes - bei großen Scans (Hunderttausende Dreiecke) sind das
@@ -424,7 +429,7 @@ renderer.xr.enabled = true; // WebXR aktivieren
 // automatisch erst dann, ganz ohne zusätzliche Sichtbarkeits-Logik.
 const vrBtn = VRButton.createButton(renderer);
 document.querySelector('.btn-row').appendChild(vrBtn);
-renderer.xr.addEventListener('sessionend', () => { debugSprite.visible = false; });
+renderer.xr.addEventListener('sessionend', () => { debugSprite.visible = false; applyLensShift(); });
 let needsVRHeightCalibration = false;
 renderer.xr.addEventListener('sessionstart', () => {
   // Beim Betreten von VR den Dolly auf Bodenhöhe im Raumzentrum setzen.
@@ -613,6 +618,13 @@ dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.167.1/examples/
 
 const gltfLoader = new GLTFLoader();
 gltfLoader.setDRACOLoader(dracoLoader);
+// Weitere GLB-Kompressionen: Meshopt (z.B. gltfpack) und KTX2-Texturen.
+// Ohne diese Decoder bricht das Laden solcher Dateien mit einem Fehler ab.
+gltfLoader.setMeshoptDecoder(MeshoptDecoder);
+const ktx2Loader = new KTX2Loader();
+ktx2Loader.setTranscoderPath('https://cdn.jsdelivr.net/npm/three@0.167.1/examples/jsm/libs/basis/');
+ktx2Loader.detectSupport(renderer);
+gltfLoader.setKTX2Loader(ktx2Loader);
 
 // ── PointerLockControls (Desktop) ────────────────────────────────
 const controls = new PointerLockControls(camera, document.body);
@@ -934,7 +946,7 @@ newFileBtn.addEventListener('click', () => {
 // WASD = vor/zurück/seitlich, Space = hoch, Alt = runter.
 // (Links und rechts, also auch AltGr; AltGr meldet unter Windows zusätzlich
 // ein "ControlLeft" - das wird ignoriert.)
-const keys = {w:false,a:false,s:false,d:false,up:false,down:false,faster:false,slower:false};
+const keys = {w:false,a:false,s:false,d:false,up:false,down:false,faster:false,slower:false,skyUp:false,skyDown:false};
 const isAltKey = e => e.code==='AltLeft' || e.code==='AltRight' || e.key==='Alt' || e.key==='AltGraph';
 let flightMode = false;   // Standard: Walking. Umschalten per TAB oder Button
 let groundSettle = 0;     // Frames, in denen die Höhe nach dem Umschalten auf Walking zum Boden nachgeführt wird
@@ -959,6 +971,8 @@ document.addEventListener('keydown', e => {
   if (e.code==='Tab')   { e.preventDefault(); toggleFlightMode(); }
   if (e.code==='KeyQ' && controls.isLocked) startLevel();
   if (e.code==='KeyE') keys.faster=true;
+  if (e.code==='KeyT') keys.skyUp=true;
+  if (e.code==='KeyG') keys.skyDown=true;
   if (e.code==='KeyR') keys.slower=true;
 });
 document.addEventListener('keyup', e => {
@@ -968,6 +982,8 @@ document.addEventListener('keyup', e => {
   if (e.code==='KeyD'||e.code==='ArrowRight') keys.d=false;
   if (e.code==='Space') keys.up=false;
   if (e.code==='KeyE') keys.faster=false;
+  if (e.code==='KeyT') keys.skyUp=false;
+  if (e.code==='KeyG') keys.skyDown=false;
   if (e.code==='KeyR') keys.slower=false;
   if (isAltKey(e)) { keys.down=false; if (controls.isLocked) e.preventDefault(); }   // verhindert Menü-Fokus des Browsers
 });
@@ -1065,16 +1081,39 @@ function setSpeedMultiplier(m) {
   speedVal.textContent = speedMultiplier.toFixed(1) + 'x';
   syncSpeedBar();
 }
+// ── Lens Shift (wie "Shift Y" an der Blender-Kamera) ─────────────
+// Verschiebt das Bild vertikal OHNE die Kamera zu neigen - die Fluchten
+// bleiben senkrecht, man sieht aber mehr Himmel und weniger Boden.
+// Positiv = Bild nach unten geschoben = mehr Himmel. Bereich -0.5 ... 0.5
+// (Anteil der Bildhöhe). Wirkt nicht in VR.
+let lensShift = 0;
+function applyLensShift() {
+  if (renderer.xr.isPresenting) return;
+  const w = window.innerWidth, h = window.innerHeight;
+  if (Math.abs(lensShift) < 1e-4) camera.clearViewOffset();
+  else camera.setViewOffset(w, h, 0, -lensShift * h, w, h);
+}
+function adjustLensShiftByKeys(delta) {
+  const dir = (keys.skyUp ? 1 : 0) - (keys.skyDown ? 1 : 0);
+  if (!dir) return;
+  lensShift = Math.max(-0.5, Math.min(0.5, lensShift + dir * 0.25 * Math.min(delta, 0.1)));
+  applyLensShift();
+  showToast('Shift Y ' + lensShift.toFixed(2));
+}
+
 // Desktop: E = schneller, R = langsamer (solange gehalten, stufenlos)
 let speedToastTimer = null;
+function showToast(text) {
+  speedToast.textContent = text;
+  speedToast.style.display = 'block';
+  clearTimeout(speedToastTimer);
+  speedToastTimer = setTimeout(() => { speedToast.style.display = 'none'; }, 1200);
+}
 function adjustSpeedByKeys(delta) {
   const dir = (keys.faster ? 1 : 0) - (keys.slower ? 1 : 0);
   if (!dir) return;
   setSpeedMultiplier(speedMultiplier * Math.exp(dir * 1.2 * Math.min(delta, 0.1)));
-  speedToast.textContent = 'Speed ' + speedMultiplier.toFixed(1) + 'x';
-  speedToast.style.display = 'block';
-  clearTimeout(speedToastTimer);
-  speedToastTimer = setTimeout(() => { speedToast.style.display = 'none'; }, 1200);
+  showToast('Speed ' + speedMultiplier.toFixed(1) + 'x');
 }
 
 // ── Blickrichtung per Touch auf dem Bildschirm ───────────────────
@@ -1220,7 +1259,19 @@ fileInput.addEventListener('change', e => {
 });
 
 // ── GLB per URL laden ────────────────────────────────────────────
+// Statt stillschweigend zur Auswahlseite zurückzuspringen, den Grund anzeigen
+// (und in der Konsole, F12, ausgeben).
+function showLoadError(what, err) {
+  console.error(err);
+  const el = document.getElementById('load-error');
+  const msg = (err && err.message) ? err.message : String(err || 'unknown error');
+  el.textContent = 'Could not open ' + what + ': ' + msg;
+  el.style.display = 'block';
+  loaderEl.classList.add('hidden');
+  uploadScreen.classList.remove('hidden');
+}
 function loadGLBFromURL(url, displayName) {
+  document.getElementById('load-error').style.display = 'none';
   uploadScreen.classList.add('hidden');
   loaderEl.classList.remove('hidden');
   progressBar.style.width='0%';
@@ -1228,12 +1279,13 @@ function loadGLBFromURL(url, displayName) {
   gltfLoader.load(url,
     gltf => { progressBar.style.width='100%'; statusText.textContent='Ready'; setupModel(gltf,url,displayName); },
     xhr  => { if(xhr.total>0){ const p=(xhr.loaded/xhr.total)*100; progressBar.style.width=p.toFixed(0)+'%'; statusText.textContent='Loading ... '+p.toFixed(0)+' %'; } },
-    ()   => { loaderEl.classList.add('hidden'); uploadScreen.classList.remove('hidden'); }
+    err  => showLoadError(url, err)
   );
 }
 
 // ── GLB aus File laden ───────────────────────────────────────────
 function loadGLBFromFile(file) {
+  document.getElementById('load-error').style.display = 'none';
   uploadScreen.classList.add('hidden');
   loaderEl.classList.remove('hidden');
   progressBar.style.width='0%';
@@ -1248,7 +1300,7 @@ function loadGLBFromFile(file) {
     statusText.textContent='Processing ...'; progressBar.style.width='60%';
     gltfLoader.parse(e.target.result,'',
       gltf => { progressBar.style.width='100%'; setupModel(gltf,file.name); },
-      err  => { console.error(err); loaderEl.classList.add('hidden'); uploadScreen.classList.remove('hidden'); }
+      err  => showLoadError(file.name, err)
     );
   };
   reader.readAsArrayBuffer(file);
@@ -1546,7 +1598,7 @@ function runAutoTravel(delta, pivot) {
 
 function updateMovement(delta){
   updateLevel(delta);
-  if (!isTouch && controls.isLocked) adjustSpeedByKeys(delta);
+  if (!isTouch && controls.isLocked) { adjustSpeedByKeys(delta); adjustLensShiftByKeys(delta); }
   const pivot=controls.getObject();
   const speed=MOVE_SPEED*delta;
   camera.getWorldDirection(tmpVec); tmpVec.y=0; tmpVec.normalize();
@@ -1628,7 +1680,7 @@ function animate(){
 }
 
 // ── Resize ───────────────────────────────────────────────────────
-window.addEventListener('resize',()=>{ camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth,window.innerHeight); });
+window.addEventListener('resize',()=>{ camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); applyLensShift(); renderer.setSize(window.innerWidth,window.innerHeight); });
 
 // ── Kein Auto-Load mehr ──────────────────────────────────────────
 </script>

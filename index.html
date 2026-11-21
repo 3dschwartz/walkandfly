@@ -85,6 +85,9 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
 #flight-btn{position:fixed;top:14px;left:16px;z-index:30;display:none;padding:8px 16px;background:rgba(255,255,255,0.85);border:1px solid #bbbbbb;color:#888888;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;backdrop-filter:blur(4px)}
 #flight-btn.active{border-color:#000000;color:#000000}
 /* Level-Taste (Touch): über dem horizontalen Balken */
+#shift-up-btn,#shift-down-btn{position:fixed;left:16px;z-index:20;display:none;width:88px;height:36px;border-radius:18px;border:2px solid rgba(80,140,255,0.5);background:rgba(80,140,255,0.08);color:rgba(80,140,255,0.9);letter-spacing:0.1em;text-transform:uppercase}
+#shift-down-btn{bottom:180px}
+#shift-up-btn{bottom:222px}
 #level-btn{position:fixed;left:16px;bottom:128px;z-index:20;display:none;width:88px;height:44px;border-radius:22px;border:2px solid rgba(80,140,255,0.5);background:rgba(80,140,255,0.08);color:rgba(80,140,255,0.9);letter-spacing:0.1em;text-transform:uppercase}
 #pause-btn{position:fixed;top:14px;right:16px;z-index:30;display:none;padding:8px 16px;background:rgba(255,255,255,0.85);border:1px solid #bbbbbb;color:#888888;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;backdrop-filter:blur(4px)}
 
@@ -162,6 +165,7 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
     <span class="key">Left bar</span><span>Speed</span>
     <span class="key">Arrows</span><span>Up / Down (Fly mode)</span>
     <span class="key">Level</span><span>Level horizon</span>
+    <span class="key">Sky / Ground</span><span>Shift image up / down (hold)</span>
     <span class="key">Top left</span><span>Walk / Fly</span>
     <span class="key">Touch screen</span><span>Look around</span>
     <span class="key">Double tap</span><span>Go to point</span>
@@ -216,6 +220,8 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
   <button id="fly-up-btn">&#9650;</button>
   <button id="fly-down-btn">&#9660;</button>
 </div>
+<button id="shift-up-btn">Sky</button>
+<button id="shift-down-btn">Ground</button>
 <button id="level-btn">Level</button>
 <button id="pause-btn">&#9776; Pause</button>
 <button id="flight-btn">Walk Mode</button>
@@ -389,6 +395,8 @@ const pauseBtn      = document.getElementById('pause-btn');
 const flightBtn     = document.getElementById('flight-btn');
 const fpsEl         = document.getElementById('fps');
 const levelBtn      = document.getElementById('level-btn');
+const shiftUpBtn    = document.getElementById('shift-up-btn');
+const shiftDownBtn  = document.getElementById('shift-down-btn');
 const barH          = document.getElementById('bar-h');
 const barHKnob      = document.getElementById('bar-h-knob');
 const joyEl         = document.getElementById('joy');
@@ -891,6 +899,8 @@ function showOverlay() {
   fpsEl.style.display='none';
   flightUpDown.style.display='none';
   levelBtn.style.display='none';
+  shiftUpBtn.style.display='none';
+  shiftDownBtn.style.display='none';
   if (isTouch) {
     barH.style.display='none';
     joyEl.style.display='none';
@@ -906,6 +916,8 @@ function hideOverlay() {
   else {
     if (flightMode) flightUpDown.style.display='flex';
     levelBtn.style.display='block';
+    shiftUpBtn.style.display='block';
+    shiftDownBtn.style.display='block';
     barH.style.display='block';
     joyEl.style.display='block';
     syncSpeedBar();
@@ -1130,7 +1142,7 @@ function applyLook(dx, dy) {
 }
 if (isTouch) {
   const look = { id:null, x:0, y:0 };
-  const isControl = el => el.closest && el.closest('#bar-h,#joy,#flight-updown,#level-btn,#flight-btn,#pause-btn,#overlay,#upload-screen,#loader');
+  const isControl = el => el.closest && el.closest('#bar-h,#joy,#flight-updown,#level-btn,#shift-up-btn,#shift-down-btn,#flight-btn,#pause-btn,#overlay,#upload-screen,#loader');
   document.addEventListener('touchstart', e => {
     if (!touchActive || look.id !== null) return;
     for (const t of e.changedTouches) {
@@ -1195,6 +1207,14 @@ function updateLevel(delta) {
 }
 if (isTouch) {
   levelBtn.addEventListener('touchstart', e => { e.preventDefault(); startLevel(); }, {passive:false});
+  // Shift Y per Touch: gedrückt halten = Bild stufenlos verschieben (Sky = mehr Himmel, Ground = mehr Boden)
+  const holdKey = (btn, key) => {
+    btn.addEventListener('touchstart',  e => { e.preventDefault(); keys[key] = true; }, {passive:false});
+    btn.addEventListener('touchend',    () => { keys[key] = false; });
+    btn.addEventListener('touchcancel', () => { keys[key] = false; });
+  };
+  holdKey(shiftUpBtn, 'skyUp');
+  holdKey(shiftDownBtn, 'skyDown');
 }
 
 // ── Räume dynamisch generieren ───────────────────────────────────
@@ -1599,6 +1619,7 @@ function runAutoTravel(delta, pivot) {
 function updateMovement(delta){
   updateLevel(delta);
   if (!isTouch && controls.isLocked) { adjustSpeedByKeys(delta); adjustLensShiftByKeys(delta); }
+  else if (isTouch && touchActive) adjustLensShiftByKeys(delta);
   const pivot=controls.getObject();
   const speed=MOVE_SPEED*delta;
   camera.getWorldDirection(tmpVec); tmpVec.y=0; tmpVec.normalize();

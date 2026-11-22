@@ -84,6 +84,12 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
 #fps{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:30;display:none;padding:4px 10px;background:rgba(255,255,255,0.85);border:1px solid #bbbbbb;color:#000000;letter-spacing:0.1em;pointer-events:none}
 #flight-btn{position:fixed;top:14px;left:16px;z-index:30;display:none;padding:8px 16px;background:rgba(255,255,255,0.85);border:1px solid #bbbbbb;color:#888888;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;backdrop-filter:blur(4px)}
 #flight-btn.active{border-color:#000000;color:#000000}
+#coll-btn,#shot-btn{position:fixed;top:56px;z-index:30;display:none;padding:8px 16px;background:rgba(255,255,255,0.85);border:1px solid #bbbbbb;color:#000000;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;backdrop-filter:blur(4px)}
+#coll-btn{left:16px}
+#shot-btn{right:16px}
+#coll-btn.off{color:#888888}
+.set-btn{padding:4px 12px;background:transparent;border:1px solid #bbbbbb;color:#000000;letter-spacing:0.1em;cursor:pointer;text-align:center}
+.set-btn.off{color:#888888}
 /* Level-Taste (Touch): über dem horizontalen Balken */
 #shift-up-btn,#shift-down-btn{position:fixed;left:16px;z-index:20;display:none;width:88px;height:36px;border-radius:18px;border:2px solid rgba(80,140,255,0.5);background:rgba(80,140,255,0.08);color:rgba(80,140,255,0.9);letter-spacing:0.1em;text-transform:uppercase}
 #shift-down-btn{bottom:180px}
@@ -131,7 +137,7 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
 <div id="upload-screen">
   <h1>walk and fly</h1>
   <p class="subtitle">Choose a room or upload your own file, for PC/mobile/VR</p>
-  <p class="nav-hint">Navigation PC: Walking WASD, Flying TAB, Space = up, Alt = down, E/R = faster/slower, T/G = shift image, Q = level horizon, Mouse = look, double click = go to point<br>Mobile: Use the Joystick (right), the Speed Bar (left), the Walk/Fly Button and the Level Button, touch the screen to look, double tap = go to point / VR: Teleportation</p>
+  <p class="nav-hint">Navigation PC: Walking WASD, Flying TAB, Space = up, Alt = down, E/R = faster/slower, T/G = shift image, C = collision on/off, P = screenshot, Q = level horizon, Mouse = look, double click = go to point<br>Mobile: Use the Joystick (right), the Speed Bar (left), the Walk/Fly Button and the Level Button, touch the screen to look, double tap = go to point / VR: Teleportation</p>
   
   <div class="room-grid" id="room-grid">
     <!-- Räume werden dynamisch aus ROOMS generiert -->
@@ -155,6 +161,8 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
     <span class="key">Space / Alt</span><span>Up / Down (Fly)</span>
     <span class="key">E / R</span><span>Faster / Slower</span>
     <span class="key">T / G</span><span>Shift image up / down</span>
+    <span class="key">C</span><span>Collision on / off</span>
+    <span class="key">P</span><span>Screenshot</span>
     <span class="key">Q</span><span>Level horizon</span>
     <span class="key">Mouse</span><span>Look around</span>
     <span class="key">Double click</span><span>Go to point</span>
@@ -166,6 +174,7 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
     <span class="key">Arrows</span><span>Up / Down (Fly mode)</span>
     <span class="key">Level</span><span>Level horizon</span>
     <span class="key">Sky / Ground</span><span>Shift image up / down (hold)</span>
+    <span class="key">Top buttons</span><span>Collision on / off, Screenshot</span>
     <span class="key">Top left</span><span>Walk / Fly</span>
     <span class="key">Touch screen</span><span>Look around</span>
     <span class="key">Double tap</span><span>Go to point</span>
@@ -188,9 +197,21 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
     <input type="range" id="speed-slider" min="0.5" max="12" step="0.1" value="1.0" />
     <span id="speed-value">1.0x</span>
 
+    <label for="focal-slider">Focal Length</label>
+    <input type="range" id="focal-slider" min="16" max="50" step="1" value="16" />
+    <span id="focal-value">16 mm</span>
+
     <label for="light-slider">Light Strength</label>
     <input type="range" id="light-slider" min="-2" max="2" step="0.05" value="0" />
     <span id="light-value">1.00x</span>
+
+    <label for="collision-toggle">Collision</label>
+    <button type="button" id="collision-toggle" class="set-btn">On</button>
+    <span></span>
+
+    <label for="shot-setting-btn">Screenshot</label>
+    <button type="button" id="shot-setting-btn" class="set-btn">Save image</button>
+    <span></span>
 
     <label for="bg-color">Background</label>
     <input type="color" id="bg-color" value="#ffffff" style="width:50px;height:28px;border:1px solid #bbbbbb;background:none;cursor:pointer;padding:2px" />
@@ -223,6 +244,8 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
 <button id="shift-up-btn">Sky</button>
 <button id="shift-down-btn">Ground</button>
 <button id="level-btn">Level</button>
+<button id="coll-btn">Collision On</button>
+<button id="shot-btn">Screenshot</button>
 <button id="pause-btn">&#9776; Pause</button>
 <button id="flight-btn">Walk Mode</button>
 
@@ -388,6 +411,12 @@ const speedSlider   = document.getElementById('speed-slider');
 const speedVal      = document.getElementById('speed-value');
 const lightSlider   = document.getElementById('light-slider');
 const lightVal      = document.getElementById('light-value');
+const focalSlider   = document.getElementById('focal-slider');
+const focalVal      = document.getElementById('focal-value');
+const collisionToggle = document.getElementById('collision-toggle');
+const shotSettingBtn  = document.getElementById('shot-setting-btn');
+const collBtn       = document.getElementById('coll-btn');
+const shotBtn       = document.getElementById('shot-btn');
 const bgColor       = document.getElementById('bg-color');
 const iblStrength   = document.getElementById('ibl-strength');
 const iblStrVal     = document.getElementById('ibl-strength-value');
@@ -493,6 +522,21 @@ const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerH
 const vrDolly = new THREE.Object3D();
 scene.add(vrDolly);
 vrDolly.add(camera);
+
+// ── Brennweite 16 - 50 mm (Kleinbild-Äquivalent, Sensor 36 mm wie in Blender) ──
+// Bei Hochformat/Querformat passt three.js das Sichtfeld automatisch an die
+// größere Bildseite an (wie "Sensor Fit: Auto").
+camera.filmGauge = 36;
+let focalLength = 16;
+function applyFocalLength() { camera.setFocalLength(focalLength); }
+function setFocalLength(mm) {
+  focalLength = Math.min(50, Math.max(16, mm));
+  focalSlider.value = focalLength;
+  focalVal.textContent = focalLength.toFixed(0) + ' mm';
+  applyFocalLength();
+}
+focalSlider.addEventListener('input', () => setFocalLength(parseFloat(focalSlider.value)));
+setFocalLength(16);
 
 // ── VR-Debug-HUD (nur im Headset sichtbar, folgt dem Blick) ───────
 // Da man in VR keine Browser-Konsole sehen kann, wird hier eine kleine
@@ -901,6 +945,8 @@ function showOverlay() {
   levelBtn.style.display='none';
   shiftUpBtn.style.display='none';
   shiftDownBtn.style.display='none';
+  collBtn.style.display='none';
+  shotBtn.style.display='none';
   if (isTouch) {
     barH.style.display='none';
     joyEl.style.display='none';
@@ -918,6 +964,8 @@ function hideOverlay() {
     levelBtn.style.display='block';
     shiftUpBtn.style.display='block';
     shiftDownBtn.style.display='block';
+    collBtn.style.display='block';
+    shotBtn.style.display='block';
     barH.style.display='block';
     joyEl.style.display='block';
     syncSpeedBar();
@@ -983,6 +1031,8 @@ document.addEventListener('keydown', e => {
   if (e.code==='Tab')   { e.preventDefault(); toggleFlightMode(); }
   if (e.code==='KeyQ' && controls.isLocked) startLevel();
   if (e.code==='KeyE') keys.faster=true;
+  if (e.code==='KeyC' && !e.repeat && controls.isLocked) setCollisionEnabled(!collisionEnabled, true);
+  if (e.code==='KeyP' && !e.repeat && controls.isLocked) requestScreenshot();
   if (e.code==='KeyT') keys.skyUp=true;
   if (e.code==='KeyG') keys.skyDown=true;
   if (e.code==='KeyR') keys.slower=true;
@@ -1115,6 +1165,51 @@ function adjustLensShiftByKeys(delta) {
 
 // Desktop: E = schneller, R = langsamer (solange gehalten, stufenlos)
 let speedToastTimer = null;
+// ── Kollisionserkennung ein/aus ──────────────────────────────────
+// Aus = man kann durch Wände, Boden und Decke fliegen/gehen. Im Walk-Modus
+// folgt die Höhe weiterhin dem Boden (Treppen), nur Wände sind durchlässig.
+let collisionEnabled = true;
+function setCollisionEnabled(on, toast) {
+  collisionEnabled = on;
+  collisionToggle.textContent = on ? 'On' : 'Off';
+  collisionToggle.classList.toggle('off', !on);
+  collBtn.textContent = on ? 'Collision On' : 'Collision Off';
+  collBtn.classList.toggle('off', !on);
+  if (toast) showToast('Collision ' + (on ? 'on' : 'off'));
+}
+collisionToggle.addEventListener('click', () => setCollisionEnabled(!collisionEnabled));
+collBtn.addEventListener('click', () => setCollisionEnabled(!collisionEnabled, true));
+
+// ── Screenshot vom Kamerabild (ohne Schalter und Knöpfe) ─────────
+// Gespeichert wird nur das WebGL-Canvas - Bedienelemente sind HTML darüber
+// und deshalb nie im Bild. Aufgenommen wird mit mindestens doppelter
+// Pixeldichte (max. 6000 px Kantenlänge), inklusive Brennweite und Shift Y.
+let screenshotRequested = false;
+function requestScreenshot() { screenshotRequested = true; }
+function takeScreenshot() {
+  if (renderer.xr.isPresenting) return;
+  const w = window.innerWidth, h = window.innerHeight;
+  const dpr = renderer.getPixelRatio();
+  const target = Math.max(dpr, Math.min(2, 6000 / Math.max(w, h)));
+  const changed = Math.abs(target - dpr) > 1e-3;
+  if (changed) renderer.setPixelRatio(target);
+  renderer.render(scene, camera);
+  renderer.domElement.toBlob(blob => {
+    if (!blob) { showToast('Screenshot failed'); return; }
+    const d = new Date(), pad = n => String(n).padStart(2, '0');
+    const name = `walk-and-fly_${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}.png`;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    showToast('Screenshot saved');
+  }, 'image/png');
+  if (changed) { renderer.setPixelRatio(dpr); renderer.render(scene, camera); }   // Canvas wiederherstellen
+}
+shotSettingBtn.addEventListener('click', requestScreenshot);
+shotBtn.addEventListener('click', requestScreenshot);
+
 function showToast(text) {
   speedToast.textContent = text;
   speedToast.style.display = 'block';
@@ -1142,7 +1237,7 @@ function applyLook(dx, dy) {
 }
 if (isTouch) {
   const look = { id:null, x:0, y:0 };
-  const isControl = el => el.closest && el.closest('#bar-h,#joy,#flight-updown,#level-btn,#shift-up-btn,#shift-down-btn,#flight-btn,#pause-btn,#overlay,#upload-screen,#loader');
+  const isControl = el => el.closest && el.closest('#bar-h,#joy,#flight-updown,#level-btn,#shift-up-btn,#shift-down-btn,#coll-btn,#shot-btn,#flight-btn,#pause-btn,#overlay,#upload-screen,#loader');
   document.addEventListener('touchstart', e => {
     if (!touchActive || look.id !== null) return;
     for (const t of e.changedTouches) {
@@ -1455,7 +1550,7 @@ const swSide   = new THREE.Vector3();
 // Liefert, wie weit man sich von 'pos' entlang 'dir' (Achsrichtung) bewegen
 // darf, maximal 'dist'. 'clearance' ist der einzuhaltende Abstand zur Fläche.
 function sweepAllowed(pos, dir, dist, clearance, vertical) {
-  if (dist <= 0 || collisionMeshes.length === 0) return dist;
+  if (!collisionEnabled || dist <= 0 || collisionMeshes.length === 0) return dist;
   const reach = dist + clearance;
   const offsets = vertical
     ? [[0,0],[PLAYER_RADIUS,0],[-PLAYER_RADIUS,0],[0,PLAYER_RADIUS],[0,-PLAYER_RADIUS]]
@@ -1526,7 +1621,7 @@ function moveHorizontal(pos, move) {
     const dist = csRem.length();
     if (dist < 1e-6) return;
     csDir.copy(csRem).divideScalar(dist);
-    if (collisionMeshes.length === 0) { pos.addScaledVector(csDir, dist); return; }
+    if (!collisionEnabled || collisionMeshes.length === 0) { pos.addScaledVector(csDir, dist); return; }
     csSide.set(-csDir.z, 0, csDir.x);
     let allowedMin = dist, hitFound = false;
     for (const off of CS_OFFSETS) {
@@ -1697,11 +1792,12 @@ function animate(){
     }
     
     renderer.render(scene, camera);
+    if (screenshotRequested) { screenshotRequested = false; takeScreenshot(); }
   });
 }
 
 // ── Resize ───────────────────────────────────────────────────────
-window.addEventListener('resize',()=>{ camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); applyLensShift(); renderer.setSize(window.innerWidth,window.innerHeight); });
+window.addEventListener('resize',()=>{ camera.aspect=window.innerWidth/window.innerHeight; applyFocalLength(); applyLensShift(); renderer.setSize(window.innerWidth,window.innerHeight); });
 
 // ── Kein Auto-Load mehr ──────────────────────────────────────────
 </script>

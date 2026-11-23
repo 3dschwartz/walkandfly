@@ -21,7 +21,7 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
 #upload-screen h1{font-weight:400;letter-spacing:0.3em;color:#000000}
 #upload-screen .subtitle{letter-spacing:0.2em;color:#555555;margin-top:-18px}
 #load-error{display:none;width:min(620px,92vw);padding:10px 14px;border:1px solid #b00020;color:#b00020;text-align:center;line-height:1.5;word-break:break-word}
-#upload-screen .nav-hint{letter-spacing:0.08em;color:#888888;text-align:center;line-height:1.6;margin-top:-14px}
+#upload-screen .intro{width:min(620px,92vw);letter-spacing:0.03em;color:#555555;text-align:center;line-height:1.6;margin-top:-14px}
 
 .room-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;width:min(620px,92vw)}
 .room-card{min-height:84px;justify-content:center;padding:18px 14px;background:transparent;border:1px solid #cccccc;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:border-color 0.2s,background 0.2s}
@@ -71,7 +71,8 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
 /* Touch-Balken: links horizontal (links/rechts), rechts vertikal (vor/zurück) */
 .touch-bar{position:fixed;z-index:20;display:none;border-radius:30px;border:2px solid rgba(80,140,255,0.5);background:rgba(80,140,255,0.08)}
 #bar-h{left:16px;bottom:50px;width:min(34vw,170px);height:56px}
-#joy{right:16px;bottom:40px;width:130px;height:130px;border-radius:50%}
+#joy{right:16px;bottom:146px;width:130px;height:130px;border-radius:50%}
+#bar-speed{right:16px;bottom:56px;width:130px;height:56px}
 .bar-knob{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;background:rgba(80,140,255,0.6);pointer-events:none}
 .bar-label{position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);letter-spacing:0.1em;color:rgba(80,140,255,0.6);text-transform:uppercase;white-space:nowrap;pointer-events:none}
 
@@ -122,6 +123,31 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
   opacity: 0.4 !important;
   cursor: default !important;
 }
+
+/* ── Mobile (Klasse .touch am body): weiße Beschriftung auf dunklem Grund ── */
+.touch .touch-bar{background:rgba(0,0,0,0.45);border-color:rgba(255,255,255,0.75)}
+.touch .bar-knob{background:rgba(255,255,255,0.9)}
+.touch .bar-label{color:#ffffff;text-shadow:0 0 3px #000,0 0 6px #000}
+.touch #flight-updown button,.touch #level-btn,.touch #flight-btn,.touch #coll-btn{background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.75);color:#ffffff}
+.touch #flight-btn.active{border-color:#ffffff}
+.touch #coll-btn.off{opacity:0.7}
+.touch #fps,.touch #speed-toast{background:rgba(0,0,0,0.55);border-color:rgba(255,255,255,0.75);color:#ffffff}
+.touch #fps{padding:2px 6px;font-size:12px;letter-spacing:0.05em}
+/* Walk/Fly und Collision: rechts über dem Move-Joystick */
+.touch #flight-btn,.touch #coll-btn{position:fixed;top:auto;left:auto;right:16px;width:130px;padding:8px 6px;font-size:13px;letter-spacing:0.05em;text-align:center}
+.touch #flight-btn{bottom:290px}
+.touch #coll-btn{bottom:334px}
+@media (max-height:520px) and (orientation:landscape){
+  .touch #flight-btn{right:162px;bottom:146px}
+  .touch #coll-btn{right:162px;bottom:190px}
+}
+/* Obere Leiste: Shift (links), FPS (Mitte), Screenshot + Pause (rechts) */
+.top-row{position:fixed;top:14px;z-index:30;display:flex;gap:8px}
+#top-left{left:16px}
+#top-right{right:16px}
+#top-left button,#top-right button{position:static;top:auto;right:auto;bottom:auto;left:auto;width:auto;height:auto;border-radius:0;padding:6px 8px;font-size:12px;letter-spacing:0.05em;background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.75);color:#ffffff;text-transform:none;backdrop-filter:none}
+.top-row .lbl{display:none}
+@media (min-width:431px){ .top-row .lbl{display:inline} }
 </style>
 <base target="_blank">
 </head>
@@ -137,7 +163,8 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
 <div id="upload-screen">
   <h1>walk and fly</h1>
   <p class="subtitle">Choose a room or upload your own file, for PC/mobile/VR</p>
-  <p class="nav-hint">Navigation PC: Walking WASD, Flying TAB, Space = up, Alt = down, E/R = faster/slower, T/G = shift image, C = collision on/off, P = screenshot, Q = level horizon, Mouse = look, double click = go to point<br>Mobile: Use the Joystick (right), the Speed Bar (left), the Walk/Fly Button and the Level Button, touch the screen to look, double tap = go to point / VR: Teleportation</p>
+  <p class="intro">Mit diesem Player lassen sich aus einem 3D-Modell Screenshots erstellen, die mithilfe von KI in realistische 3D-Visualisierungen umgewandelt werden können.</p>
+  <p class="intro">Choose a project and explore the model<br>Select camera viewpoint, adjust camera settings professionally<br>Create a screenshot, send the screenshot to the AI<br>Apply a prompt template, optimize the visualization in a targeted manner</p>
   
   <div class="room-grid" id="room-grid">
     <!-- Räume werden dynamisch aus ROOMS generiert -->
@@ -170,12 +197,12 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
   </div>
   <div class="controls-hint" id="touch-hint" style="display:none">
     <span class="key">Right circle</span><span>Move (forward / back / sideways)</span>
-    <span class="key">Left bar</span><span>Speed</span>
+    <span class="key">Under the circle</span><span>Speed</span>
+    <span class="key">Left bar</span><span>Camera angle (1-50 mm)</span>
     <span class="key">Arrows</span><span>Up / Down (Fly mode)</span>
     <span class="key">Level</span><span>Level horizon</span>
-    <span class="key">Sky / Ground</span><span>Shift image up / down (hold)</span>
-    <span class="key">Top buttons</span><span>Collision on / off, Screenshot</span>
-    <span class="key">Top left</span><span>Walk / Fly</span>
+    <span class="key">Walk / Collision</span><span>Buttons above the circle</span>
+    <span class="key">Top</span><span>Shift image, Screenshot, Pause</span>
     <span class="key">Touch screen</span><span>Look around</span>
     <span class="key">Double tap</span><span>Go to point</span>
   </div>
@@ -198,7 +225,7 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
     <span id="speed-value">1.0x</span>
 
     <label for="focal-slider">Focal Length</label>
-    <input type="range" id="focal-slider" min="16" max="50" step="1" value="16" />
+    <input type="range" id="focal-slider" min="1" max="50" step="1" value="16" />
     <span id="focal-value">16 mm</span>
 
     <label for="light-slider">Light Strength</label>
@@ -228,26 +255,34 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
 <canvas id="canvas"></canvas>
 <div id="esc-hint">ESC - Pause</div>
 
-<!-- Touch-Steuerung: links Geschwindigkeits-Balken, rechts runder Joystick, Pfeile in der Mitte -->
+<!-- Touch-Steuerung: links Kamerawinkel-Balken, rechts Joystick mit Geschwindigkeits-Balken darunter, Pfeile in der Mitte -->
 <div id="bar-h" class="touch-bar" style="display:none">
   <div id="bar-h-knob" class="bar-knob"></div>
-  <div id="speed-bar-label" class="bar-label">speed 1.0x</div>
+  <div id="focal-bar-label" class="bar-label">angle 16 mm</div>
 </div>
 <div id="joy" class="touch-bar" style="display:none">
   <div id="joy-knob" class="bar-knob"></div>
   <div class="bar-label">move</div>
 </div>
+<div id="bar-speed" class="touch-bar" style="display:none">
+  <div id="bar-speed-knob" class="bar-knob"></div>
+  <div id="speed-bar-label" class="bar-label">speed 1.0x</div>
+</div>
 <div id="flight-updown">
   <button id="fly-up-btn">&#9650;</button>
   <button id="fly-down-btn">&#9660;</button>
 </div>
-<button id="shift-up-btn">Sky</button>
-<button id="shift-down-btn">Ground</button>
 <button id="level-btn">Level</button>
 <button id="coll-btn">Collision On</button>
-<button id="shot-btn">Screenshot</button>
-<button id="pause-btn">&#9776; Pause</button>
 <button id="flight-btn">Walk Mode</button>
+<div id="top-left" class="top-row">
+  <button id="shift-up-btn" title="Shift Y: more sky">Shift&#9650;</button>
+  <button id="shift-down-btn" title="Shift Y: more ground">Shift&#9660;</button>
+</div>
+<div id="top-right" class="top-row">
+  <button id="shot-btn"><span>&#128247;</span><span class="lbl"> Screenshot</span></button>
+  <button id="pause-btn"><span>&#9776;</span><span class="lbl"> Pause</span></button>
+</div>
 
 <div id="fps">-- FPS</div>
 <div id="speed-toast"></div>
@@ -388,6 +423,7 @@ const ROOMS = [
 
 // ── Geräteerkennung ──────────────────────────────────────────────
 const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+if (isTouch) document.body.classList.add('touch');   // Mobile-Styling (siehe CSS)
 
 // DOM
 const canvas        = document.getElementById('canvas');
@@ -430,7 +466,10 @@ const barH          = document.getElementById('bar-h');
 const barHKnob      = document.getElementById('bar-h-knob');
 const joyEl         = document.getElementById('joy');
 const joyKnob       = document.getElementById('joy-knob');
+const barSpeed      = document.getElementById('bar-speed');
+const barSpeedKnob  = document.getElementById('bar-speed-knob');
 const speedBarLabel = document.getElementById('speed-bar-label');
+const focalBarLabel = document.getElementById('focal-bar-label');
 const speedToast    = document.getElementById('speed-toast');
 const flightUpDown  = document.getElementById('flight-updown');
 const flyUpBtn      = document.getElementById('fly-up-btn');
@@ -444,7 +483,7 @@ const roomGrid      = document.getElementById('room-grid');
 if (isTouch) {
   desktopHint.style.display = 'none';
   touchHint.style.display   = 'grid';
-  infoEl.textContent = 'Circle: move  |  Bar: speed  |  Level: horizon  |  Touch screen: look';
+  infoEl.textContent = '';   // Mobile: kein Hinweistext unten
 } else {
   infoEl.textContent = 'WASD move  |  E/R speed  |  TAB walk / fly  |  Q level  |  Mouse look  |  ESC pause';
 }
@@ -523,14 +562,15 @@ const vrDolly = new THREE.Object3D();
 scene.add(vrDolly);
 vrDolly.add(camera);
 
-// ── Brennweite 16 - 50 mm (Kleinbild-Äquivalent, Sensor 36 mm wie in Blender) ──
+// ── Brennweite 1 - 50 mm (Kleinbild-Äquivalent, Sensor 36 mm wie in Blender) ──
 // Bei Hochformat/Querformat passt three.js das Sichtfeld automatisch an die
 // größere Bildseite an (wie "Sensor Fit: Auto").
 camera.filmGauge = 36;
+const FOCAL_MIN = 1, FOCAL_MAX = 50;
 let focalLength = 16;
 function applyFocalLength() { camera.setFocalLength(focalLength); }
 function setFocalLength(mm) {
-  focalLength = Math.min(50, Math.max(16, mm));
+  focalLength = Math.min(FOCAL_MAX, Math.max(FOCAL_MIN, mm));
   focalSlider.value = focalLength;
   focalVal.textContent = focalLength.toFixed(0) + ' mm';
   applyFocalLength();
@@ -950,6 +990,7 @@ function showOverlay() {
   if (isTouch) {
     barH.style.display='none';
     joyEl.style.display='none';
+    barSpeed.style.display='none';
     pauseBtn.style.display='none';
     touchActive=false;
   }
@@ -968,7 +1009,9 @@ function hideOverlay() {
     shotBtn.style.display='block';
     barH.style.display='block';
     joyEl.style.display='block';
+    barSpeed.style.display='block';
     syncSpeedBar();
+    syncFocalBar();
     pauseBtn.style.display='block';
     touchActive=true;
   }
@@ -1100,39 +1143,50 @@ function joystickHandler(el, knob) {
 }
 joystickHandler(joyEl, joyKnob);
 
-// ── Geschwindigkeits-Balken (links): bleibt an der eingestellten Stelle ──
-// Logarithmisch von SPEED_MIN bis SPEED_MAX (wie der Regler in den Einstellungen).
-const SPEED_MIN = 0.5, SPEED_MAX = 12;
-function speedFromBarTouch(t) {
-  const r = barH.getBoundingClientRect();
-  const travel = Math.max(1, (r.width - KNOB_SIZE) / 2);
-  const d = Math.max(-travel, Math.min(travel, t.clientX - (r.left + r.width / 2)));
-  const f = (d / travel + 1) / 2;                          // 0..1
-  setSpeedMultiplier(SPEED_MIN * Math.pow(SPEED_MAX / SPEED_MIN, f));
-}
-(function speedBarHandler() {
+// ── Balken-Regler: bleiben an der eingestellten Stelle ───────────
+function barSlider(el, onFraction) {
   let id = null;
-  barH.addEventListener('touchstart', e => {
+  const fromTouch = t => {
+    const r = el.getBoundingClientRect();
+    const travel = Math.max(1, (r.width - KNOB_SIZE) / 2);
+    const d = Math.max(-travel, Math.min(travel, t.clientX - (r.left + r.width / 2)));
+    onFraction((d / travel + 1) / 2);                       // 0..1
+  };
+  el.addEventListener('touchstart', e => {
     e.preventDefault();
     if (id !== null) return;
-    const t = e.changedTouches[0]; id = t.identifier; speedFromBarTouch(t);
+    const t = e.changedTouches[0]; id = t.identifier; fromTouch(t);
   }, {passive:false});
-  barH.addEventListener('touchmove', e => {
+  el.addEventListener('touchmove', e => {
     e.preventDefault();
-    for (const t of e.changedTouches) if (t.identifier === id) speedFromBarTouch(t);
+    for (const t of e.changedTouches) if (t.identifier === id) fromTouch(t);
   }, {passive:false});
   const end = e => { for (const t of e.changedTouches) if (t.identifier === id) id = null; };
-  barH.addEventListener('touchend', end);
-  barH.addEventListener('touchcancel', end);
-})();
+  el.addEventListener('touchend', end);
+  el.addEventListener('touchcancel', end);
+}
+function placeBarKnob(el, knob, f) {
+  const r = el.getBoundingClientRect();
+  if (r.width === 0) return;                               // Balken gerade unsichtbar
+  const travel = (r.width - KNOB_SIZE) / 2;
+  knob.style.transform = `translate(calc(-50% + ${(f * 2 - 1) * travel}px), -50%)`;
+}
+
+// Geschwindigkeit (rechts, unter dem Joystick): logarithmisch SPEED_MIN ... SPEED_MAX
+const SPEED_MIN = 0.5, SPEED_MAX = 12;
+barSlider(barSpeed, f => setSpeedMultiplier(SPEED_MIN * Math.pow(SPEED_MAX / SPEED_MIN, f)));
 function syncSpeedBar() {
   if (!isTouch) return;
   speedBarLabel.textContent = 'speed ' + speedMultiplier.toFixed(1) + 'x';
-  const r = barH.getBoundingClientRect();
-  if (r.width === 0) return;                               // Balken gerade unsichtbar
-  const f = Math.log(speedMultiplier / SPEED_MIN) / Math.log(SPEED_MAX / SPEED_MIN);
-  const travel = (r.width - KNOB_SIZE) / 2;
-  barHKnob.style.transform = `translate(calc(-50% + ${(f * 2 - 1) * travel}px), -50%)`;
+  placeBarKnob(barSpeed, barSpeedKnob, Math.log(speedMultiplier / SPEED_MIN) / Math.log(SPEED_MAX / SPEED_MIN));
+}
+
+// Kamerawinkel = Brennweite (links, dauerhaft sichtbar): FOCAL_MIN ... FOCAL_MAX mm
+barSlider(barH, f => { setFocalLength(Math.round(FOCAL_MIN + f * (FOCAL_MAX - FOCAL_MIN))); syncFocalBar(); });
+function syncFocalBar() {
+  if (!isTouch) return;
+  focalBarLabel.textContent = 'angle ' + focalLength.toFixed(0) + ' mm';
+  placeBarKnob(barH, barHKnob, (focalLength - FOCAL_MIN) / (FOCAL_MAX - FOCAL_MIN));
 }
 
 // Zentrale Stelle für die Geschwindigkeit (Regler, Balken, E/R-Tasten, Voreinstellungen)
@@ -1237,7 +1291,7 @@ function applyLook(dx, dy) {
 }
 if (isTouch) {
   const look = { id:null, x:0, y:0 };
-  const isControl = el => el.closest && el.closest('#bar-h,#joy,#flight-updown,#level-btn,#shift-up-btn,#shift-down-btn,#coll-btn,#shot-btn,#flight-btn,#pause-btn,#overlay,#upload-screen,#loader');
+  const isControl = el => el.closest && el.closest('#bar-h,#bar-speed,#joy,#flight-updown,#level-btn,#shift-up-btn,#shift-down-btn,#coll-btn,#shot-btn,#flight-btn,#pause-btn,#overlay,#upload-screen,#loader');
   document.addEventListener('touchstart', e => {
     if (!touchActive || look.id !== null) return;
     for (const t of e.changedTouches) {
@@ -1315,7 +1369,10 @@ if (isTouch) {
 // ── Räume dynamisch generieren ───────────────────────────────────
 function buildRoomCards() {
   roomGrid.innerHTML = '';
-  ROOMS.forEach((room, index) => {
+  const rank = i => ROOMS[i].category === '3D Konstruction' ? 0 : 1;      // Konstruktionen zuerst, dann Scans
+  const order = ROOMS.map((r, i) => i).sort((a, b) => rank(a) - rank(b));   // stabil: Reihenfolge innerhalb bleibt
+  order.forEach(index => {
+    const room = ROOMS[index];
     const card = document.createElement('div');
     card.className = 'room-card';
     card.dataset.index = index;

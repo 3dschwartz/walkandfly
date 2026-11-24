@@ -21,6 +21,9 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
 #upload-screen h1{font-weight:400;letter-spacing:0.3em;color:#000000}
 #upload-screen .subtitle{width:min(620px,92vw);letter-spacing:0.2em;color:#555555;text-align:left;margin-top:-14px;margin-bottom:-14px}
 #load-error{display:none;width:min(620px,92vw);padding:10px 14px;border:1px solid #b00020;color:#b00020;text-align:center;line-height:1.5;word-break:break-word}
+#upload-screen .prompt-box{width:min(620px,92vw);margin-top:-14px;margin-bottom:-14px;text-align:left;color:#555555;line-height:1.6;letter-spacing:0.03em}
+#upload-screen .prompt-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px;color:#000000}
+#prompt-text{white-space:pre-line}
 #upload-screen .steps{width:min(620px,92vw);margin-top:-14px;padding-left:1.2em;letter-spacing:0.03em;color:#555555;text-align:left;line-height:1.6}
 #upload-screen .intro{width:min(620px,92vw);letter-spacing:0.03em;color:#555555;text-align:center;line-height:1.6;margin-top:-14px}
 
@@ -94,8 +97,9 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
 .set-btn.off{color:#888888}
 /* Level-Taste (Touch): über dem horizontalen Balken */
 #shift-up-btn,#shift-down-btn{position:fixed;left:16px;z-index:20;display:none;width:88px;height:36px;border-radius:18px;border:2px solid rgba(80,140,255,0.5);background:rgba(80,140,255,0.08);color:rgba(80,140,255,0.9);letter-spacing:0.1em;text-transform:uppercase}
-#shift-down-btn{bottom:180px}
-#shift-up-btn{bottom:222px}
+#shift-down-btn{bottom:196px}
+#shift-up-btn{bottom:238px}
+#shift-label{position:fixed;left:16px;bottom:174px;width:88px;text-align:center;z-index:20;display:none;pointer-events:none;font-size:13px;letter-spacing:0.05em;white-space:nowrap;color:#ffffff;text-shadow:0 0 3px #000,0 0 6px #000}
 #level-btn{position:fixed;left:16px;bottom:128px;z-index:20;display:none;width:88px;height:44px;border-radius:22px;border:2px solid rgba(80,140,255,0.5);background:rgba(80,140,255,0.08);color:rgba(80,140,255,0.9);letter-spacing:0.1em;text-transform:uppercase}
 #pause-btn{position:fixed;top:14px;right:16px;z-index:30;display:none;padding:8px 16px;background:rgba(255,255,255,0.85);border:1px solid #bbbbbb;color:#888888;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;backdrop-filter:blur(4px)}
 
@@ -134,7 +138,7 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
 .touch #coll-btn.off{opacity:0.7}
 .touch #speed-toast{background:rgba(0,0,0,0.55);border-color:rgba(255,255,255,0.75);color:#ffffff}
 /* Walk/Fly und Collision: rechts über dem Move-Joystick */
-.touch #flight-btn,.touch #coll-btn{position:fixed;top:auto;left:auto;right:16px;width:130px;padding:8px 6px;font-size:13px;letter-spacing:0.05em;text-align:center}
+.touch #flight-btn,.touch #coll-btn{position:fixed;top:auto;left:auto;right:16px;width:130px;padding:8px 6px;font-size:13px;letter-spacing:0.05em;text-align:center;border-radius:18px}
 .touch #flight-btn{bottom:290px}
 .touch #coll-btn{bottom:334px}
 @media (max-height:520px) and (orientation:landscape){
@@ -143,7 +147,7 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
 }
 /* Obere Leiste (Mobile): FPS, Screenshot und Pause in einer Zeile, gleiche Größe/Schrift wie die übrigen Buttons */
 #top-row{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:30;display:flex;gap:8px;align-items:stretch}
-#top-row #fps{position:static;transform:none;display:none}
+#top-row #fps{position:static;transform:none;display:none;white-space:nowrap;flex-shrink:0}
 #top-row #shot-btn,#top-row #pause-btn{position:static;top:auto;right:auto;left:auto;bottom:auto}
 .touch #top-row #fps,.touch #top-row button{font-family:inherit;padding:8px 12px;font-size:13px;letter-spacing:0.05em;line-height:normal;text-transform:uppercase;background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.75);color:#ffffff;backdrop-filter:none}
 .touch #speed-toast{top:58px}
@@ -162,14 +166,20 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
 <!-- ── Startseite mit Raumauswahl ──────────────────────────── -->
 <div id="upload-screen">
   <h1>walk and fly</h1>
-  <p class="intro">This player allows you to create screenshots from a 3D model, which can then be transformed into realistic 3D visualizations with the help of AI.</p>
+  <p class="intro">This player allows you to create screenshots from a 3D model, which can then be transformed into realistic 3D visualizations with the help of AI, for PC/mobile/VR</p>
   <ul class="steps">
     <li>Choose a project and explore the model</li>
     <li>Select camera viewpoint, adjust camera settings professionally</li>
     <li>Create a screenshot, send the screenshot to the AI</li>
     <li>Apply a prompt template, optimize the visualization in a targeted manner</li>
   </ul>
-  <p class="subtitle">Choose a room or upload your own file, for PC/mobile/VR</p>
+  <div class="prompt-box">
+    <div class="prompt-head">
+      <span>prompt for image generation:</span>
+      <button type="button" id="copy-prompt-btn" class="set-btn">Copy</button>
+    </div>
+    <p id="prompt-text"></p>
+  </div>
 
   <div class="room-grid" id="room-grid">
     <!-- Räume werden dynamisch aus ROOMS generiert -->
@@ -281,6 +291,7 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
 <button id="level-btn">Level</button>
 <button id="coll-btn">Collision On</button>
 <button id="flight-btn">Walk Mode</button>
+<div id="shift-label">shift 0.00</div>
 <button id="shift-up-btn" title="Shift Y: more sky">Shift&#9650;</button>
 <button id="shift-down-btn" title="Shift Y: more ground">Shift&#9660;</button>
 <div id="top-row">
@@ -466,6 +477,7 @@ const fpsEl         = document.getElementById('fps');
 const levelBtn      = document.getElementById('level-btn');
 const shiftUpBtn    = document.getElementById('shift-up-btn');
 const shiftDownBtn  = document.getElementById('shift-down-btn');
+const shiftLabel    = document.getElementById('shift-label');
 const barH          = document.getElementById('bar-h');
 const barHKnob      = document.getElementById('bar-h-knob');
 const joyEl         = document.getElementById('joy');
@@ -989,6 +1001,7 @@ function showOverlay() {
   levelBtn.style.display='none';
   shiftUpBtn.style.display='none';
   shiftDownBtn.style.display='none';
+  shiftLabel.style.display='none';
   collBtn.style.display='none';
   shotBtn.style.display='none';
   if (isTouch) {
@@ -1009,6 +1022,7 @@ function hideOverlay() {
     levelBtn.style.display='block';
     shiftUpBtn.style.display='block';
     shiftDownBtn.style.display='block';
+    shiftLabel.style.display='block';
     collBtn.style.display='block';
     shotBtn.style.display='block';
     barH.style.display='block';
@@ -1208,6 +1222,7 @@ function setSpeedMultiplier(m) {
 // (Anteil der Bildhöhe). Wirkt nicht in VR.
 let lensShift = 0;
 function applyLensShift() {
+  shiftLabel.textContent = 'shift ' + lensShift.toFixed(2);
   if (renderer.xr.isPresenting) return;
   const w = window.innerWidth, h = window.innerHeight;
   if (Math.abs(lensShift) < 1e-4) camera.clearViewOffset();
@@ -1369,6 +1384,27 @@ if (isTouch) {
   holdKey(shiftUpBtn, 'skyUp');
   holdKey(shiftDownBtn, 'skyDown');
 }
+
+// ── Prompt für die Bild-Erzeugung + Zwischenablage ──────────────
+const PROMPT_TEXT =
+  'Make the materials and surfaces in the scene appear more realistic, without altering the framing or the camera position. The composition of the image should remain unchanged.\n' +
+  'Add a few people to the scene; include a green horizon and a blue sky with a few small, white clouds.';
+document.getElementById('prompt-text').textContent = PROMPT_TEXT;
+(function () {
+  const btn = document.getElementById('copy-prompt-btn');
+  const done = () => { btn.textContent = 'Copied'; setTimeout(() => { btn.textContent = 'Copy'; }, 1500); };
+  const fallback = () => {                       // ältere Browser / kein HTTPS
+    const ta = document.createElement('textarea');
+    ta.value = PROMPT_TEXT; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) { btn.textContent = 'Copy failed'; }
+    ta.remove();
+  };
+  btn.addEventListener('click', () => {
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(PROMPT_TEXT).then(done, fallback);
+    else fallback();
+  });
+})();
 
 // ── Räume dynamisch generieren ───────────────────────────────────
 function buildRoomCards() {

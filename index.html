@@ -24,6 +24,7 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
 #upload-screen .prompt-box{width:min(620px,92vw);margin-top:-14px;margin-bottom:-14px;text-align:left;color:#555555;line-height:1.6;letter-spacing:0.03em}
 #upload-screen .prompt-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px;color:#000000}
 #prompt-text{white-space:pre-line}
+#upload-screen .title-row{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap}
 #upload-screen .steps{width:min(620px,92vw);margin-top:-14px;padding-left:1.2em;letter-spacing:0.03em;color:#555555;text-align:left;line-height:1.6}
 #upload-screen .intro{width:min(620px,92vw);letter-spacing:0.03em;color:#555555;text-align:center;line-height:1.6;margin-top:-14px}
 
@@ -99,7 +100,7 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
 #shift-up-btn,#shift-down-btn{position:fixed;left:16px;z-index:20;display:none;width:88px;height:36px;border-radius:18px;border:2px solid rgba(80,140,255,0.5);background:rgba(80,140,255,0.08);color:rgba(80,140,255,0.9);letter-spacing:0.1em;text-transform:uppercase}
 #shift-down-btn{bottom:196px}
 #shift-up-btn{bottom:238px}
-#shift-label{position:fixed;left:16px;bottom:174px;width:88px;text-align:center;z-index:20;display:none;pointer-events:none;font-size:13px;letter-spacing:0.05em;white-space:nowrap;color:#ffffff;text-shadow:0 0 3px #000,0 0 6px #000}
+#shift-label{position:fixed;left:4px;bottom:174px;width:112px;text-align:center;z-index:20;display:none;pointer-events:none;font-size:14px;letter-spacing:0.1em;white-space:nowrap;color:#ffffff;text-shadow:0 0 3px #000,0 0 6px #000}
 #level-btn{position:fixed;left:16px;bottom:128px;z-index:20;display:none;width:88px;height:44px;border-radius:22px;border:2px solid rgba(80,140,255,0.5);background:rgba(80,140,255,0.08);color:rgba(80,140,255,0.9);letter-spacing:0.1em;text-transform:uppercase}
 #pause-btn{position:fixed;top:14px;right:16px;z-index:30;display:none;padding:8px 16px;background:rgba(255,255,255,0.85);border:1px solid #bbbbbb;color:#888888;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;backdrop-filter:blur(4px)}
 
@@ -160,13 +161,16 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
 <div id="loader" class="hidden">
   <h1>walk and fly</h1>
   <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
-  <span id="loader-status">Loading model ...</span>
+  <span id="loader-status" data-dyn>Loading model ...</span>
 </div>
 
 <!-- ── Startseite mit Raumauswahl ──────────────────────────── -->
 <div id="upload-screen">
-  <h1>walk and fly</h1>
-  <p class="intro">This player allows you to create screenshots from a 3D model, which can then be transformed into realistic 3D visualizations with the help of AI, for PC/mobile/VR</p>
+  <div class="title-row">
+    <h1>walk and fly</h1>
+    <button type="button" id="lang-btn" class="set-btn" data-dyn>Deutsch</button>
+  </div>
+  <p class="intro">This player (for PC/mobile/VR) allows you to create screenshots from a 3D model, which can then be transformed into realistic 3D visualizations with the help of AI.</p>
   <ul class="steps">
     <li>Choose a project and explore the model</li>
     <li>Select camera viewpoint, adjust camera settings professionally</li>
@@ -176,12 +180,12 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
   <div class="prompt-box">
     <div class="prompt-head">
       <span>prompt for image generation:</span>
-      <button type="button" id="copy-prompt-btn" class="set-btn">Copy</button>
+      <button type="button" id="copy-prompt-btn" class="set-btn" data-dyn>Copy</button>
     </div>
-    <p id="prompt-text"></p>
+    <p id="prompt-text" data-dyn></p>
   </div>
 
-  <div class="room-grid" id="room-grid">
+  <div class="room-grid" id="room-grid" data-dyn>
     <!-- Räume werden dynamisch aus ROOMS generiert -->
   </div>
   
@@ -190,13 +194,13 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
   <div id="drop-zone">
     <p>Drag or upload your own 3D scan / design here.<br>The 3D file format is GLB (.glb).</p>
   </div>
-  <p id="load-error"></p>
+  <p id="load-error" data-dyn></p>
   <input type="file" id="file-input" accept=".glb,.GLB,model/gltf-binary,application/octet-stream,*/*" />
 
 </div>
 
 <div id="overlay" class="hidden">
-  <h2 id="overlay-title">walk and fly</h2>
+  <h2 id="overlay-title" data-dyn>walk and fly</h2>
   <div class="controls-hint" id="desktop-hint">
     <span class="key">W A S D</span><span>Move</span>
     <span class="key">TAB</span><span>Walk / Fly</span>
@@ -246,10 +250,10 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
 
     <label for="light-slider">Light Strength</label>
     <input type="range" id="light-slider" min="-2" max="2" step="0.05" value="0" />
-    <span id="light-value">1.00x</span>
+    <span id="light-value" data-dyn>1.00x</span>
 
     <label for="collision-toggle">Collision</label>
-    <button type="button" id="collision-toggle" class="set-btn">On</button>
+    <button type="button" id="collision-toggle" class="set-btn" data-dyn>On</button>
     <span></span>
 
     <label for="shot-setting-btn">Screenshot</label>
@@ -274,7 +278,7 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
 <!-- Touch-Steuerung: links Kamerawinkel-Balken, rechts Joystick mit Geschwindigkeits-Balken darunter, Pfeile in der Mitte -->
 <div id="bar-h" class="touch-bar" style="display:none">
   <div id="bar-h-knob" class="bar-knob"></div>
-  <div id="focal-bar-label" class="bar-label">angle 16 mm</div>
+  <div id="focal-bar-label" class="bar-label" data-dyn>angle 16 mm</div>
 </div>
 <div id="joy" class="touch-bar" style="display:none">
   <div id="joy-knob" class="bar-knob"></div>
@@ -282,26 +286,26 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
 </div>
 <div id="bar-speed" class="touch-bar" style="display:none">
   <div id="bar-speed-knob" class="bar-knob"></div>
-  <div id="speed-bar-label" class="bar-label">speed 1.0x</div>
+  <div id="speed-bar-label" class="bar-label" data-dyn>speed 1.0x</div>
 </div>
 <div id="flight-updown">
   <button id="fly-up-btn">&#9650;</button>
   <button id="fly-down-btn">&#9660;</button>
 </div>
 <button id="level-btn">Level</button>
-<button id="coll-btn">Collision On</button>
-<button id="flight-btn">Walk Mode</button>
-<div id="shift-label">shift 0.00</div>
+<button id="coll-btn" data-dyn>Collision On</button>
+<button id="flight-btn" data-dyn>Walk Mode</button>
+<div id="shift-label" data-dyn>shift 0.00</div>
 <button id="shift-up-btn" title="Shift Y: more sky">Shift&#9650;</button>
 <button id="shift-down-btn" title="Shift Y: more ground">Shift&#9660;</button>
 <div id="top-row">
-  <div id="fps">-- FPS</div>
+  <div id="fps" data-dyn>-- FPS</div>
   <button id="shot-btn">Screenshot</button>
   <button id="pause-btn">Pause</button>
 </div>
 
-<div id="speed-toast"></div>
-<div id="info"></div>
+<div id="speed-toast" data-dyn></div>
+<div id="info" data-dyn></div>
 
 <script type="importmap">
 {
@@ -495,13 +499,127 @@ const desktopHint   = document.getElementById('desktop-hint');
 const touchHint     = document.getElementById('touch-hint');
 const roomGrid      = document.getElementById('room-grid');
 
+
+// ═══════════════════════════════════════════════════════════════════
+// ═══ SPRACHE: Englisch (Standard) / Deutsch ═══════════════════════
+// Statische Texte im HTML stehen auf Englisch und werden bei "Deutsch"
+// per Wörterbuch (STATIC_DE) ersetzt. Dynamische Texte kommen aus t().
+// ═══════════════════════════════════════════════════════════════════
+const STATIC_DE = {
+  'This player (for PC/mobile/VR) allows you to create screenshots from a 3D model, which can then be transformed into realistic 3D visualizations with the help of AI.':
+    'Mit diesem Player (für PC/Mobile/VR) lassen sich aus einem 3D-Modell Screenshots erstellen, die mithilfe von KI in realistische 3D-Visualisierungen umgewandelt werden können.',
+  'Choose a project and explore the model': 'Wähle ein Projekt und erkunde das Modell',
+  'Select camera viewpoint, adjust camera settings professionally': 'Wähle den Kamerastandpunkt und passe die Kameraeinstellungen professionell an',
+  'Create a screenshot, send the screenshot to the AI': 'Erstelle einen Screenshot und sende ihn an die KI',
+  'Apply a prompt template, optimize the visualization in a targeted manner': 'Nutze eine Prompt-Vorlage und optimiere die Visualisierung gezielt',
+  'prompt for image generation:': 'Prompt für die Bilderzeugung:',
+  'Drag or upload your own 3D scan / design here.': 'Ziehe deinen eigenen 3D-Scan / Entwurf hierher oder lade ihn hoch.',
+  'The 3D file format is GLB (.glb).': 'Das 3D-Dateiformat ist GLB (.glb).',
+  // Hinweise (Desktop)
+  'Move': 'Bewegen', 'Walk / Fly': 'Gehen / Fliegen', 'Up / Down (Fly)': 'Hoch / Runter (Fliegen)',
+  'Faster / Slower': 'Schneller / Langsamer', 'Shift image up / down': 'Bild nach oben / unten verschieben',
+  'Collision on / off': 'Kollision an / aus', 'Level horizon': 'Horizont ausrichten', 'Look around': 'Umschauen',
+  'Go to point': 'Zum Punkt fahren', 'Mouse': 'Maus', 'Double click': 'Doppelklick',
+  // Hinweise (Touch)
+  'Right circle': 'Rechter Kreis', 'Move (forward / back / sideways)': 'Bewegen (vor / zurück / seitlich)',
+  'Under the circle': 'Unter dem Kreis', 'Speed': 'Geschwindigkeit', 'Left bar': 'Linker Balken',
+  'Camera angle (1-50 mm)': 'Kamerawinkel (1-50 mm)', 'Arrows': 'Pfeile', 'Up / Down (Fly mode)': 'Hoch / Runter (Flugmodus)',
+  'Walk / Collision': 'Gehen / Kollision', 'Buttons above the circle': 'Buttons über dem Kreis',
+  'Above Level': 'Über Level', 'Shift image up / down (hold)': 'Bild nach oben / unten verschieben (halten)',
+  'Top': 'Oben', 'Touch screen': 'Touchscreen', 'Double tap': 'Doppeltippen', 'move': 'bewegen',
+  // Einstellungen
+  'Brightness': 'Helligkeit', 'IBL Strength': 'IBL-Stärke', 'Eye Height': 'Augenhöhe', 'Focal Length': 'Brennweite',
+  'Light Strength': 'Lichtstärke', 'Collision': 'Kollision', 'Background': 'Hintergrund',
+  'Save image': 'Bild speichern', 'Enter': 'Betreten', 'New File': 'Neue Datei'
+};
+const ROOM_DE = {
+  'Stairwell': 'Treppenhaus', 'Scatepark': 'Skatepark', 'Basement': 'Keller', 'Driveway': 'Auffahrt',
+  'Technical building': 'Technikgebäude', 'old appartement': 'altes Appartement', 'appartement': 'Appartement',
+  'large hall': 'große Halle', 'Glass Palace': 'Glaspalast', 'old airship hangar': 'alter Luftschiffhangar'
+};
+const I18N = {
+  en: {
+    'mode.walk': 'Walk Mode', 'mode.fly': 'Fly Mode', 'on': 'On', 'off': 'Off',
+    'coll.on': 'Collision On', 'coll.off': 'Collision Off', 'toast.coll.on': 'Collision on', 'toast.coll.off': 'Collision off',
+    'speed.label': x => 'speed ' + x + 'x', 'speed.toast': x => 'Speed ' + x + 'x',
+    'angle.label': x => 'angle ' + x + ' mm', 'shift.label': x => 'shift ' + x, 'shift.toast': x => 'Shift Y ' + x,
+    'shot.saved': 'Screenshot saved', 'shot.failed': 'Screenshot failed', 'light.none': 'none in file',
+    'copy': 'Copy', 'copied': 'Copied', 'copyfail': 'Copy failed',
+    'load.model': 'Loading model ...', 'load.url': u => 'Loading ' + u + ' ...', 'load.progress': p => 'Loading ... ' + p + ' %',
+    'load.ready': 'Ready', 'load.reading': 'Reading file ...', 'load.processing': 'Processing ...',
+    'err.open': (w, m) => 'Could not open ' + w + ': ' + m, 'err.unknown': 'unknown error',
+    'info.desktop': 'WASD move  |  E/R speed  |  TAB walk / fly  |  Q level  |  Mouse look  |  ESC pause',
+    'title.skyUp': 'Shift Y: more sky', 'title.skyDown': 'Shift Y: more ground',
+    'prompt': 'Make the materials and surfaces in the scene appear more realistic, without altering the framing or the camera position. The composition of the image should remain unchanged.\n' +
+              'Add a few people to the scene; include a green horizon and a blue sky with a few small, white clouds.'
+  },
+  de: {
+    'mode.walk': 'Geh-Modus', 'mode.fly': 'Flug-Modus', 'on': 'An', 'off': 'Aus',
+    'coll.on': 'Kollision An', 'coll.off': 'Kollision Aus', 'toast.coll.on': 'Kollision an', 'toast.coll.off': 'Kollision aus',
+    'speed.label': x => 'Tempo ' + x + 'x', 'speed.toast': x => 'Tempo ' + x + 'x',
+    'angle.label': x => 'Winkel ' + x + ' mm', 'shift.label': x => 'Shift ' + x, 'shift.toast': x => 'Shift Y ' + x,
+    'shot.saved': 'Screenshot gespeichert', 'shot.failed': 'Screenshot fehlgeschlagen', 'light.none': 'keine in Datei',
+    'copy': 'Kopieren', 'copied': 'Kopiert', 'copyfail': 'Fehlgeschlagen',
+    'load.model': 'Lade Modell ...', 'load.url': u => 'Lade ' + u + ' ...', 'load.progress': p => 'Lade ... ' + p + ' %',
+    'load.ready': 'Bereit', 'load.reading': 'Lese Datei ...', 'load.processing': 'Verarbeite ...',
+    'err.open': (w, m) => 'Konnte ' + w + ' nicht öffnen: ' + m, 'err.unknown': 'unbekannter Fehler',
+    'info.desktop': 'WASD bewegen  |  E/R Tempo  |  TAB gehen / fliegen  |  Q Horizont  |  Maus umsehen  |  ESC Pause',
+    'title.skyUp': 'Shift Y: mehr Himmel', 'title.skyDown': 'Shift Y: mehr Boden',
+    'prompt': 'Lasse die Materialien und Oberflächen in der Szene realistischer wirken, ohne den Bildausschnitt oder die Kameraposition zu verändern. Die Bildkomposition soll unverändert bleiben.\n' +
+              'Füge der Szene ein paar Personen hinzu; ergänze einen grünen Horizont und einen blauen Himmel mit ein paar kleinen, weißen Wolken.'
+  }
+};
+let lang = 'en';
+try { if (localStorage.getItem('wf-lang') === 'de') lang = 'de'; } catch (e) {}
+function t(key, ...args) {
+  const v = (I18N[lang] && I18N[lang][key] !== undefined) ? I18N[lang][key] : I18N.en[key];
+  return typeof v === 'function' ? v(...args) : v;
+}
+const roomName     = r => (lang === 'de' && ROOM_DE[r.name]) || r.name;
+const roomCategory = r => (lang === 'de' && r.category === '3D Konstruction') ? '3D Konstruktion' : r.category;
+
+function translateStaticNodes() {
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+    acceptNode: n => (n.parentElement && !n.parentElement.closest('script,style,[data-dyn]') && n.nodeValue.trim())
+      ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
+  });
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  for (const n of nodes) {
+    if (n.__en === undefined) n.__en = n.nodeValue;
+    const en = n.__en.trim();
+    if (lang === 'de' && STATIC_DE[en]) { n.nodeValue = n.__en.replace(en, STATIC_DE[en]); n.__tr = true; }
+    else if (n.__tr) { n.nodeValue = n.__en; n.__tr = false; }
+  }
+}
+function applyLanguage() {
+  document.documentElement.lang = lang;
+  translateStaticNodes();
+  document.getElementById('lang-btn').textContent = lang === 'en' ? 'Deutsch' : 'English';
+  document.getElementById('prompt-text').textContent = t('prompt');
+  document.getElementById('copy-prompt-btn').textContent = t('copy');
+  statusText.textContent = t('load.model');
+  shiftUpBtn.title = t('title.skyUp');
+  shiftDownBtn.title = t('title.skyDown');
+  if (!isTouch) infoEl.textContent = t('info.desktop');
+  buildRoomCards();
+  setFlightMode(flightMode);
+  setCollisionEnabled(collisionEnabled);
+  syncSpeedBar(); syncFocalBar(); applyLensShift();
+}
+document.getElementById('lang-btn').addEventListener('click', () => {
+  lang = (lang === 'en') ? 'de' : 'en';
+  try { localStorage.setItem('wf-lang', lang); } catch (e) {}
+  applyLanguage();
+});
+
 // Hinweise je nach Gerät
 if (isTouch) {
   desktopHint.style.display = 'none';
   touchHint.style.display   = 'grid';
   infoEl.textContent = '';   // Mobile: kein Hinweistext unten
 } else {
-  infoEl.textContent = 'WASD move  |  E/R speed  |  TAB walk / fly  |  Q level  |  Mouse look  |  ESC pause';
+  infoEl.textContent = t('info.desktop');
 }
 
 // ── Renderer ─────────────────────────────────────────────────────
@@ -700,7 +818,7 @@ function collectModelLights(model) {
   ambientLight.visible = !has && FALLBACK_LIGHTS;
   dirLight.visible     = !has && FALLBACK_LIGHTS;
   lightSlider.disabled = !has;
-  lightVal.textContent = has ? lightMultiplier.toFixed(2) + 'x' : 'none in file';
+  lightVal.textContent = has ? lightMultiplier.toFixed(2) + 'x' : t('light.none');
   applyLightStrength();
 }
 
@@ -1073,7 +1191,7 @@ let flightMode = false;   // Standard: Walking. Umschalten per TAB oder Button
 let groundSettle = 0;     // Frames, in denen die Höhe nach dem Umschalten auf Walking zum Boden nachgeführt wird
 function setFlightMode(on) {
   flightMode = on;
-  flightBtn.textContent = flightMode ? 'Fly Mode' : 'Walk Mode';
+  flightBtn.textContent = flightMode ? t('mode.fly') : t('mode.walk');
   flightBtn.classList.toggle('active', flightMode);
   if (isTouch) flightUpDown.style.display = (flightMode && overlayEl.classList.contains('hidden')) ? 'flex' : 'none';
   if (!flightMode) { groundSettle = 120; keys.up = keys.down = false; }
@@ -1195,7 +1313,7 @@ const SPEED_MIN = 0.5, SPEED_MAX = 12;
 barSlider(barSpeed, f => setSpeedMultiplier(SPEED_MIN * Math.pow(SPEED_MAX / SPEED_MIN, f)));
 function syncSpeedBar() {
   if (!isTouch) return;
-  speedBarLabel.textContent = 'speed ' + speedMultiplier.toFixed(1) + 'x';
+  speedBarLabel.textContent = t('speed.label', speedMultiplier.toFixed(1));
   placeBarKnob(barSpeed, barSpeedKnob, Math.log(speedMultiplier / SPEED_MIN) / Math.log(SPEED_MAX / SPEED_MIN));
 }
 
@@ -1203,7 +1321,7 @@ function syncSpeedBar() {
 barSlider(barH, f => { setFocalLength(Math.round(FOCAL_MIN + f * (FOCAL_MAX - FOCAL_MIN))); syncFocalBar(); });
 function syncFocalBar() {
   if (!isTouch) return;
-  focalBarLabel.textContent = 'angle ' + focalLength.toFixed(0) + ' mm';
+  focalBarLabel.textContent = t('angle.label', focalLength.toFixed(0));
   placeBarKnob(barH, barHKnob, (focalLength - FOCAL_MIN) / (FOCAL_MAX - FOCAL_MIN));
 }
 
@@ -1222,7 +1340,7 @@ function setSpeedMultiplier(m) {
 // (Anteil der Bildhöhe). Wirkt nicht in VR.
 let lensShift = 0;
 function applyLensShift() {
-  shiftLabel.textContent = 'shift ' + lensShift.toFixed(2);
+  shiftLabel.textContent = t('shift.label', lensShift.toFixed(2));
   if (renderer.xr.isPresenting) return;
   const w = window.innerWidth, h = window.innerHeight;
   if (Math.abs(lensShift) < 1e-4) camera.clearViewOffset();
@@ -1233,7 +1351,7 @@ function adjustLensShiftByKeys(delta) {
   if (!dir) return;
   lensShift = Math.max(-0.5, Math.min(0.5, lensShift + dir * 0.25 * Math.min(delta, 0.1)));
   applyLensShift();
-  showToast('Shift Y ' + lensShift.toFixed(2));
+  if (!isTouch) showToast(t('shift.toast', lensShift.toFixed(2)));   // Mobile: Wert steht dauerhaft links
 }
 
 // Desktop: E = schneller, R = langsamer (solange gehalten, stufenlos)
@@ -1244,11 +1362,11 @@ let speedToastTimer = null;
 let collisionEnabled = true;
 function setCollisionEnabled(on, toast) {
   collisionEnabled = on;
-  collisionToggle.textContent = on ? 'On' : 'Off';
+  collisionToggle.textContent = on ? t('on') : t('off');
   collisionToggle.classList.toggle('off', !on);
-  collBtn.textContent = on ? 'Collision On' : 'Collision Off';
+  collBtn.textContent = on ? t('coll.on') : t('coll.off');
   collBtn.classList.toggle('off', !on);
-  if (toast) showToast('Collision ' + (on ? 'on' : 'off'));
+  if (toast) showToast(on ? t('toast.coll.on') : t('toast.coll.off'));
 }
 collisionToggle.addEventListener('click', () => setCollisionEnabled(!collisionEnabled));
 collBtn.addEventListener('click', () => setCollisionEnabled(!collisionEnabled, true));
@@ -1268,7 +1386,7 @@ function takeScreenshot() {
   if (changed) renderer.setPixelRatio(target);
   renderer.render(scene, camera);
   renderer.domElement.toBlob(blob => {
-    if (!blob) { showToast('Screenshot failed'); return; }
+    if (!blob) { showToast(t('shot.failed')); return; }
     const d = new Date(), pad = n => String(n).padStart(2, '0');
     const name = `walk-and-fly_${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}.png`;
     const url = URL.createObjectURL(blob);
@@ -1276,7 +1394,7 @@ function takeScreenshot() {
     a.href = url; a.download = name;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 10000);
-    showToast('Screenshot saved');
+    showToast(t('shot.saved'));
   }, 'image/png');
   if (changed) { renderer.setPixelRatio(dpr); renderer.render(scene, camera); }   // Canvas wiederherstellen
 }
@@ -1293,7 +1411,7 @@ function adjustSpeedByKeys(delta) {
   const dir = (keys.faster ? 1 : 0) - (keys.slower ? 1 : 0);
   if (!dir) return;
   setSpeedMultiplier(speedMultiplier * Math.exp(dir * 1.2 * Math.min(delta, 0.1)));
-  showToast('Speed ' + speedMultiplier.toFixed(1) + 'x');
+  showToast(t('speed.toast', speedMultiplier.toFixed(1)));
 }
 
 // ── Blickrichtung per Touch auf dem Bildschirm ───────────────────
@@ -1386,22 +1504,18 @@ if (isTouch) {
 }
 
 // ── Prompt für die Bild-Erzeugung + Zwischenablage ──────────────
-const PROMPT_TEXT =
-  'Make the materials and surfaces in the scene appear more realistic, without altering the framing or the camera position. The composition of the image should remain unchanged.\n' +
-  'Add a few people to the scene; include a green horizon and a blue sky with a few small, white clouds.';
-document.getElementById('prompt-text').textContent = PROMPT_TEXT;
 (function () {
   const btn = document.getElementById('copy-prompt-btn');
-  const done = () => { btn.textContent = 'Copied'; setTimeout(() => { btn.textContent = 'Copy'; }, 1500); };
+  const done = () => { btn.textContent = t('copied'); setTimeout(() => { btn.textContent = t('copy'); }, 1500); };
   const fallback = () => {                       // ältere Browser / kein HTTPS
     const ta = document.createElement('textarea');
-    ta.value = PROMPT_TEXT; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    ta.value = t('prompt'); ta.style.position = 'fixed'; ta.style.opacity = '0';
     document.body.appendChild(ta); ta.select();
-    try { document.execCommand('copy'); done(); } catch (e) { btn.textContent = 'Copy failed'; }
+    try { document.execCommand('copy'); done(); } catch (e) { btn.textContent = t('copyfail'); }
     ta.remove();
   };
   btn.addEventListener('click', () => {
-    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(PROMPT_TEXT).then(done, fallback);
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t('prompt')).then(done, fallback);
     else fallback();
   });
 })();
@@ -1416,7 +1530,7 @@ function buildRoomCards() {
     const card = document.createElement('div');
     card.className = 'room-card';
     card.dataset.index = index;
-    card.innerHTML = `<span class="room-category">${room.category}</span><span class="room-name">${room.name}</span>`;
+    card.innerHTML = `<span class="room-category">${roomCategory(room)}</span><span class="room-name">${roomName(room)}</span>`;
     card.addEventListener('click', () => {
       document.querySelectorAll('.room-card').forEach(c => c.classList.remove('active'));
       card.classList.add('active');
@@ -1455,7 +1569,7 @@ function loadRoomByIndex(index) {
   setSpeedMultiplier(config.speed || 1.0);
   setLightMultiplier(config.light || 1.0);
   
-  loadGLBFromURL(config.file, config.name);
+  loadGLBFromURL(config.file, roomName(config));
 }
 
 // ── Drag & Drop ───────────────────────────────────────────────────
@@ -1476,8 +1590,8 @@ fileInput.addEventListener('change', e => {
 function showLoadError(what, err) {
   console.error(err);
   const el = document.getElementById('load-error');
-  const msg = (err && err.message) ? err.message : String(err || 'unknown error');
-  el.textContent = 'Could not open ' + what + ': ' + msg;
+  const msg = (err && err.message) ? err.message : String(err || t('err.unknown'));
+  el.textContent = t('err.open', what, msg);
   el.style.display = 'block';
   loaderEl.classList.add('hidden');
   uploadScreen.classList.remove('hidden');
@@ -1487,10 +1601,10 @@ function loadGLBFromURL(url, displayName) {
   uploadScreen.classList.add('hidden');
   loaderEl.classList.remove('hidden');
   progressBar.style.width='0%';
-  statusText.textContent='Loading '+url+' ...';
+  statusText.textContent=t('load.url', url);
   gltfLoader.load(url,
-    gltf => { progressBar.style.width='100%'; statusText.textContent='Ready'; setupModel(gltf,url,displayName); },
-    xhr  => { if(xhr.total>0){ const p=(xhr.loaded/xhr.total)*100; progressBar.style.width=p.toFixed(0)+'%'; statusText.textContent='Loading ... '+p.toFixed(0)+' %'; } },
+    gltf => { progressBar.style.width='100%'; statusText.textContent=t('load.ready'); setupModel(gltf,url,displayName); },
+    xhr  => { if(xhr.total>0){ const p=(xhr.loaded/xhr.total)*100; progressBar.style.width=p.toFixed(0)+'%'; statusText.textContent=t('load.progress', p.toFixed(0)); } },
     err  => showLoadError(url, err)
   );
 }
@@ -1501,7 +1615,7 @@ function loadGLBFromFile(file) {
   uploadScreen.classList.add('hidden');
   loaderEl.classList.remove('hidden');
   progressBar.style.width='0%';
-  statusText.textContent='Reading file ...';
+  statusText.textContent=t('load.reading');
   // Kein Voreinstellungs-Objekt für eigene Dateien - Standardwerte setzen
   setFlightMode(false);
   setSpeedMultiplier(1.0);
@@ -1509,7 +1623,7 @@ function loadGLBFromFile(file) {
   const reader=new FileReader();
   reader.onprogress=e=>{ if(e.lengthComputable){ const p=(e.loaded/e.total)*50; progressBar.style.width=p.toFixed(0)+'%'; } };
   reader.onload=e=>{
-    statusText.textContent='Processing ...'; progressBar.style.width='60%';
+    statusText.textContent=t('load.processing'); progressBar.style.width='60%';
     gltfLoader.parse(e.target.result,'',
       gltf => { progressBar.style.width='100%'; setupModel(gltf,file.name); },
       err  => showLoadError(file.name, err)
@@ -1897,6 +2011,7 @@ function animate(){
 window.addEventListener('resize',()=>{ camera.aspect=window.innerWidth/window.innerHeight; applyFocalLength(); applyLensShift(); renderer.setSize(window.innerWidth,window.innerHeight); });
 
 // ── Kein Auto-Load mehr ──────────────────────────────────────────
+applyLanguage();   // Sprache anwenden (Standard Englisch; gespeicherte Wahl wird übernommen)
 </script>
 </body>
 </html>

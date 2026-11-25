@@ -153,6 +153,10 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
 .touch #top-row #fps,.touch #top-row button{font-family:inherit;padding:8px 12px;font-size:13px;letter-spacing:0.05em;line-height:normal;text-transform:uppercase;background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.75);color:#ffffff;backdrop-filter:none}
 .touch #speed-toast{top:58px}
 .touch #shift-up-btn,.touch #shift-down-btn{background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.75);color:#ffffff;font-size:13px;letter-spacing:0.05em}
+
+.touch-device .desktop-only{display:none}
+.touch{-webkit-user-select:none;user-select:none}
+.touch .touch-bar,.touch #flight-updown button,.touch #level-btn,.touch #shift-up-btn,.touch #shift-down-btn,.touch #top-row button{cursor:pointer}
 </style>
 <base target="_blank">
 </head>
@@ -223,8 +227,8 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
     <span class="key">Walk / Collision</span><span>Buttons above the circle</span>
     <span class="key">Above Level</span><span>Shift image up / down (hold)</span>
     <span class="key">Top</span><span>FPS, Screenshot, Pause</span>
-    <span class="key">Touch screen</span><span>Look around</span>
-    <span class="key">Double tap</span><span>Go to point</span>
+    <span class="key">Drag / touch screen</span><span>Look around</span>
+    <span class="key">Double tap / click</span><span>Go to point</span>
   </div>
   <div class="divider"></div>
   <div class="settings-grid">
@@ -251,6 +255,10 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
     <label for="light-slider">Light Strength</label>
     <input type="range" id="light-slider" min="-2" max="2" step="0.05" value="0" />
     <span id="light-value" data-dyn>1.00x</span>
+
+    <label for="ui-toggle" class="desktop-only">Controls</label>
+    <button type="button" id="ui-toggle" class="set-btn desktop-only" data-dyn>Keyboard</button>
+    <span class="desktop-only"></span>
 
     <label for="collision-toggle">Collision</label>
     <button type="button" id="collision-toggle" class="set-btn" data-dyn>On</button>
@@ -442,7 +450,11 @@ const ROOMS = [
 
 // ── Geräteerkennung ──────────────────────────────────────────────
 const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-if (isTouch) document.body.classList.add('touch');   // Mobile-Styling (siehe CSS)
+if (isTouch) document.body.classList.add('touch-device');
+// UI-Modus = Bildschirm-Schaltflächen (Joystick, Balken, Buttons) + Blick per Ziehen.
+// Auf Touch-Geräten immer an, am Desktop wählbar (Einstellungen: "Controls").
+let uiMode = isTouch;
+try { if (!isTouch && localStorage.getItem('wf-ui') === 'screen') uiMode = true; } catch (e) {}
 
 // DOM
 const canvas        = document.getElementById('canvas');
@@ -495,6 +507,7 @@ const flightUpDown  = document.getElementById('flight-updown');
 const flyUpBtn      = document.getElementById('fly-up-btn');
 const flyDownBtn    = document.getElementById('fly-down-btn');
 const infoEl        = document.getElementById('info');
+const uiToggle      = document.getElementById('ui-toggle');
 const desktopHint   = document.getElementById('desktop-hint');
 const touchHint     = document.getElementById('touch-hint');
 const roomGrid      = document.getElementById('room-grid');
@@ -526,7 +539,7 @@ const STATIC_DE = {
   'Camera angle (1-50 mm)': 'Kamerawinkel (1-50 mm)', 'Arrows': 'Pfeile', 'Up / Down (Fly mode)': 'Hoch / Runter (Flugmodus)',
   'Walk / Collision': 'Gehen / Kollision', 'Buttons above the circle': 'Buttons über dem Kreis',
   'Above Level': 'Über Level', 'Shift image up / down (hold)': 'Bild nach oben / unten verschieben (halten)',
-  'Top': 'Oben', 'Touch screen': 'Touchscreen', 'Double tap': 'Doppeltippen', 'move': 'bewegen',
+  'Top': 'Oben', 'Drag / touch screen': 'Ziehen / Touchscreen', 'Double tap / click': 'Doppeltippen / Doppelklick', 'move': 'bewegen', 'Controls': 'Steuerung',
   // Einstellungen
   'Brightness': 'Helligkeit', 'IBL Strength': 'IBL-Stärke', 'Eye Height': 'Augenhöhe', 'Focal Length': 'Brennweite',
   'Light Strength': 'Lichtstärke', 'Collision': 'Kollision', 'Background': 'Hintergrund',
@@ -539,7 +552,7 @@ const ROOM_DE = {
 };
 const I18N = {
   en: {
-    'mode.walk': 'Walk Mode', 'mode.fly': 'Fly Mode', 'on': 'On', 'off': 'Off',
+    'mode.walk': 'Walk Mode', 'mode.fly': 'Fly Mode', 'on': 'On', 'off': 'Off', 'ui.keyboard': 'Keyboard', 'ui.screen': 'On-screen',
     'coll.on': 'Collision On', 'coll.off': 'Collision Off', 'toast.coll.on': 'Collision on', 'toast.coll.off': 'Collision off',
     'speed.label': x => 'speed ' + x + 'x', 'speed.toast': x => 'Speed ' + x + 'x',
     'angle.label': x => 'angle ' + x + ' mm', 'shift.label': x => 'shift ' + x, 'shift.toast': x => 'Shift Y ' + x,
@@ -554,7 +567,7 @@ const I18N = {
               'Add a few people to the scene; include a green horizon and a blue sky with a few small, white clouds.'
   },
   de: {
-    'mode.walk': 'Geh-Modus', 'mode.fly': 'Flug-Modus', 'on': 'An', 'off': 'Aus',
+    'mode.walk': 'Geh-Modus', 'mode.fly': 'Flug-Modus', 'on': 'An', 'off': 'Aus', 'ui.keyboard': 'Tastatur', 'ui.screen': 'Bildschirm',
     'coll.on': 'Kollision An', 'coll.off': 'Kollision Aus', 'toast.coll.on': 'Kollision an', 'toast.coll.off': 'Kollision aus',
     'speed.label': x => 'Tempo ' + x + 'x', 'speed.toast': x => 'Tempo ' + x + 'x',
     'angle.label': x => 'Winkel ' + x + ' mm', 'shift.label': x => 'Shift ' + x, 'shift.toast': x => 'Shift Y ' + x,
@@ -601,7 +614,7 @@ function applyLanguage() {
   statusText.textContent = t('load.model');
   shiftUpBtn.title = t('title.skyUp');
   shiftDownBtn.title = t('title.skyDown');
-  if (!isTouch) infoEl.textContent = t('info.desktop');
+  applyUiMode();
   buildRoomCards();
   setFlightMode(flightMode);
   setCollisionEnabled(collisionEnabled);
@@ -613,14 +626,21 @@ document.getElementById('lang-btn').addEventListener('click', () => {
   applyLanguage();
 });
 
-// Hinweise je nach Gerät
-if (isTouch) {
-  desktopHint.style.display = 'none';
-  touchHint.style.display   = 'grid';
-  infoEl.textContent = '';   // Mobile: kein Hinweistext unten
-} else {
-  infoEl.textContent = t('info.desktop');
+// Hinweise und Layout je nach Modus
+function applyUiMode() {
+  document.body.classList.toggle('touch', uiMode);          // Bildschirm-Layer-Styling (siehe CSS)
+  desktopHint.style.display = uiMode ? 'none' : '';
+  touchHint.style.display   = uiMode ? 'grid' : 'none';
+  infoEl.textContent = uiMode ? '' : t('info.desktop');     // im Bildschirm-Layer kein Hinweistext unten
+  uiToggle.textContent = uiMode ? t('ui.screen') : t('ui.keyboard');
 }
+uiToggle.addEventListener('click', () => {
+  uiMode = !uiMode;
+  try { localStorage.setItem('wf-ui', uiMode ? 'screen' : 'keys'); } catch (e) {}
+  applyUiMode();
+});
+applyUiMode();
+document.addEventListener('contextmenu', e => { if (uiMode) e.preventDefault(); });
 
 // ── Renderer ─────────────────────────────────────────────────────
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -868,6 +888,7 @@ let currentModel = null;
 let mixer = null; // THREE.AnimationMixer für eingebettete GLB-Animationen (siehe setupModel)
 let animRunning = false;
 let touchActive = false;
+const playing = () => uiMode ? touchActive : controls.isLocked;   // läuft gerade die Navigation?
 
 // Startwerte anwenden
 renderer.toneMappingExposure = 1.5;
@@ -1122,7 +1143,7 @@ function showOverlay() {
   shiftLabel.style.display='none';
   collBtn.style.display='none';
   shotBtn.style.display='none';
-  if (isTouch) {
+  if (uiMode) {
     barH.style.display='none';
     joyEl.style.display='none';
     barSpeed.style.display='none';
@@ -1134,7 +1155,7 @@ function hideOverlay() {
   overlayEl.classList.add('hidden');
   flightBtn.style.display='block';
   fpsEl.style.display='block';
-  if (!isTouch) { crosshair.classList.add('visible'); escHint.classList.add('visible'); }
+  if (!uiMode) { crosshair.classList.add('visible'); escHint.classList.add('visible'); }
   else {
     if (flightMode) flightUpDown.style.display='flex';
     levelBtn.style.display='block';
@@ -1153,29 +1174,31 @@ function hideOverlay() {
   }
 }
 
-if (!isTouch) {
-  startBtn.addEventListener('click', enterDesktop);
-  controls.addEventListener('lock',   hideOverlay);
-  controls.addEventListener('unlock', showOverlay);
-} else {
-  startBtn.addEventListener('click', hideOverlay);
-  pauseBtn.addEventListener('click',  showOverlay);
-}
+startBtn.addEventListener('click', () => { if (uiMode) hideOverlay(); else enterDesktop(); });
+controls.addEventListener('lock',   hideOverlay);
+controls.addEventListener('unlock', showOverlay);
+pauseBtn.addEventListener('click',  showOverlay);
 
-// ── Hoch/Runter-Pfeile (Touch): setzen dieselben Flags wie Space/Alt am Desktop.
-if (isTouch) {
-  const setUp   = v => e => { e.preventDefault(); keys.up = v; };
-  const setDown = v => e => { e.preventDefault(); keys.down = v; };
-  flyUpBtn.addEventListener('touchstart', setUp(true));
-  flyUpBtn.addEventListener('touchend',   setUp(false));
-  flyUpBtn.addEventListener('touchcancel', setUp(false));
-  flyDownBtn.addEventListener('touchstart', setDown(true));
-  flyDownBtn.addEventListener('touchend',   setDown(false));
-  flyDownBtn.addEventListener('touchcancel', setDown(false));
+// ── Eingabe-Adapter: Pointer Events (Touch, Maus, Stift) ─────────
+// Ein gemeinsamer Weg für Handy-Touch UND Maus (Bildschirm-Layer am Desktop).
+function bindPress(el, h) {
+  el.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;   // nur linke Maustaste
+    e.preventDefault();
+    try { el.setPointerCapture(e.pointerId); } catch (_) {}
+    if (h.down) h.down(e.pointerId, e.clientX, e.clientY);
+  });
+  el.addEventListener('pointermove', e => { if (h.move) h.move(e.pointerId, e.clientX, e.clientY); });
+  const end = e => { if (h.up) h.up(e.pointerId); };
+  el.addEventListener('pointerup', end);
+  el.addEventListener('pointercancel', end);
 }
+// Hoch/Runter-Pfeile: setzen dieselben Flags wie Space/Alt am Desktop.
+bindPress(flyUpBtn,   { down: () => { keys.up = true; },   up: () => { keys.up = false; } });
+bindPress(flyDownBtn, { down: () => { keys.down = true; }, up: () => { keys.down = false; } });
 
 newFileBtn.addEventListener('click', () => {
-  if (!isTouch) controls.unlock(); else showOverlay();
+  if (uiMode) showOverlay(); else controls.unlock();
   overlayEl.classList.add('hidden');
   uploadScreen.classList.remove('hidden');
   if (currentModel) { scene.remove(currentModel); currentModel=null; collisionMeshes=[]; }
@@ -1193,7 +1216,7 @@ function setFlightMode(on) {
   flightMode = on;
   flightBtn.textContent = flightMode ? t('mode.fly') : t('mode.walk');
   flightBtn.classList.toggle('active', flightMode);
-  if (isTouch) flightUpDown.style.display = (flightMode && overlayEl.classList.contains('hidden')) ? 'flex' : 'none';
+  if (uiMode) flightUpDown.style.display = (flightMode && overlayEl.classList.contains('hidden')) ? 'flex' : 'none';
   if (!flightMode) { groundSettle = 120; keys.up = keys.down = false; }
 }
 function toggleFlightMode() { setFlightMode(!flightMode); }
@@ -1203,15 +1226,16 @@ document.addEventListener('keydown', e => {
   if (e.code==='KeyA'||e.code==='ArrowLeft')  keys.a=true;
   if (e.code==='KeyS'||e.code==='ArrowDown')  keys.s=true;
   if (e.code==='KeyD'||e.code==='ArrowRight') keys.d=true;
-  if (e.code==='Space') { keys.up=true;   if (controls.isLocked) e.preventDefault(); }
+  if (e.code==='Space') { keys.up=true;   if (playing()) e.preventDefault(); }
   if (isAltKey(e))      keys.down=true;
   // Solange Alt gedrückt ist, Browser-Kürzel verhindern (z.B. Alt+Pfeil links = Zurück, Alt+D = Adressleiste)
-  if (e.altKey && controls.isLocked) e.preventDefault();
+  if (e.altKey && playing()) e.preventDefault();
+  if (e.code==='Escape' && uiMode && touchActive) showOverlay();   // Pause im Bildschirm-Layer
   if (e.code==='Tab')   { e.preventDefault(); toggleFlightMode(); }
-  if (e.code==='KeyQ' && controls.isLocked) startLevel();
+  if (e.code==='KeyQ' && playing()) startLevel();
   if (e.code==='KeyE') keys.faster=true;
-  if (e.code==='KeyC' && !e.repeat && controls.isLocked) setCollisionEnabled(!collisionEnabled, true);
-  if (e.code==='KeyP' && !e.repeat && controls.isLocked) requestScreenshot();
+  if (e.code==='KeyC' && !e.repeat && playing()) setCollisionEnabled(!collisionEnabled, true);
+  if (e.code==='KeyP' && !e.repeat && playing()) requestScreenshot();
   if (e.code==='KeyT') keys.skyUp=true;
   if (e.code==='KeyG') keys.skyDown=true;
   if (e.code==='KeyR') keys.slower=true;
@@ -1226,13 +1250,13 @@ document.addEventListener('keyup', e => {
   if (e.code==='KeyT') keys.skyUp=false;
   if (e.code==='KeyG') keys.skyDown=false;
   if (e.code==='KeyR') keys.slower=false;
-  if (isAltKey(e)) { keys.down=false; if (controls.isLocked) e.preventDefault(); }   // verhindert Menü-Fokus des Browsers
+  if (isAltKey(e)) { keys.down=false; if (playing()) e.preventDefault(); }   // verhindert Menü-Fokus des Browsers
 });
 // Tasten loslassen, wenn das Fenster den Fokus verliert (sonst "hängen" Tasten fest)
 window.addEventListener('blur', () => { for (const k in keys) keys[k]=false; });
 let lastClickTime = 0;
 document.addEventListener('mousedown', e => {
-  if (e.button !== 0 || !controls.isLocked) return;
+  if (e.button !== 0 || uiMode || !controls.isLocked) return;   // Doppelklick-Fahrt im Tastatur-Modus (Fadenkreuz)
   const now = performance.now();
   if (now - lastClickTime < 350) { lastClickTime = 0; startTravelTo(0, 0); }   // Bildmitte = Fadenkreuz
   else lastClickTime = now;
@@ -1247,59 +1271,43 @@ const fwdBar    = { v:0 };   // Joystick Y: -1 = oben (vorwärts) ... +1 = unten
 
 function joystickHandler(el, knob) {
   let id = null;
-  const update = t => {
+  const update = (cx, cy) => {
     const r = el.getBoundingClientRect();
     const radius = Math.max(1, (r.width - KNOB_SIZE) / 2);
-    let dx = t.clientX - (r.left + r.width / 2);
-    let dy = t.clientY - (r.top + r.height / 2);
+    let dx = cx - (r.left + r.width / 2);
+    let dy = cy - (r.top + r.height / 2);
     const len = Math.hypot(dx, dy);
     if (len > radius) { dx *= radius / len; dy *= radius / len; }
     strafeBar.v = dx / radius;
     fwdBar.v    = dy / radius;
     knob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
   };
-  el.addEventListener('touchstart', e => {
-    e.preventDefault();
-    if (id !== null) return;
-    const t = e.changedTouches[0]; id = t.identifier; update(t);
-  }, {passive:false});
-  el.addEventListener('touchmove', e => {
-    e.preventDefault();
-    for (const t of e.changedTouches) if (t.identifier === id) update(t);
-  }, {passive:false});
-  const end = e => {
-    for (const t of e.changedTouches) {
-      if (t.identifier !== id) continue;
+  bindPress(el, {
+    down: (pid, x, y) => { if (id !== null) return; id = pid; update(x, y); },
+    move: (pid, x, y) => { if (pid === id) update(x, y); },
+    up:   pid => {
+      if (pid !== id) return;
       id = null; strafeBar.v = 0; fwdBar.v = 0;
       knob.style.transform = 'translate(-50%,-50%)';
     }
-  };
-  el.addEventListener('touchend', end);
-  el.addEventListener('touchcancel', end);
+  });
 }
 joystickHandler(joyEl, joyKnob);
 
 // ── Balken-Regler: bleiben an der eingestellten Stelle ───────────
 function barSlider(el, onFraction) {
   let id = null;
-  const fromTouch = t => {
+  const fromPointer = x => {
     const r = el.getBoundingClientRect();
     const travel = Math.max(1, (r.width - KNOB_SIZE) / 2);
-    const d = Math.max(-travel, Math.min(travel, t.clientX - (r.left + r.width / 2)));
+    const d = Math.max(-travel, Math.min(travel, x - (r.left + r.width / 2)));
     onFraction((d / travel + 1) / 2);                       // 0..1
   };
-  el.addEventListener('touchstart', e => {
-    e.preventDefault();
-    if (id !== null) return;
-    const t = e.changedTouches[0]; id = t.identifier; fromTouch(t);
-  }, {passive:false});
-  el.addEventListener('touchmove', e => {
-    e.preventDefault();
-    for (const t of e.changedTouches) if (t.identifier === id) fromTouch(t);
-  }, {passive:false});
-  const end = e => { for (const t of e.changedTouches) if (t.identifier === id) id = null; };
-  el.addEventListener('touchend', end);
-  el.addEventListener('touchcancel', end);
+  bindPress(el, {
+    down: (pid, x) => { if (id !== null) return; id = pid; fromPointer(x); },
+    move: (pid, x) => { if (pid === id) fromPointer(x); },
+    up:   pid => { if (pid === id) id = null; }
+  });
 }
 function placeBarKnob(el, knob, f) {
   const r = el.getBoundingClientRect();
@@ -1312,7 +1320,7 @@ function placeBarKnob(el, knob, f) {
 const SPEED_MIN = 0.5, SPEED_MAX = 12;
 barSlider(barSpeed, f => setSpeedMultiplier(SPEED_MIN * Math.pow(SPEED_MAX / SPEED_MIN, f)));
 function syncSpeedBar() {
-  if (!isTouch) return;
+  if (!uiMode) return;
   speedBarLabel.textContent = t('speed.label', speedMultiplier.toFixed(1));
   placeBarKnob(barSpeed, barSpeedKnob, Math.log(speedMultiplier / SPEED_MIN) / Math.log(SPEED_MAX / SPEED_MIN));
 }
@@ -1320,7 +1328,7 @@ function syncSpeedBar() {
 // Kamerawinkel = Brennweite (links, dauerhaft sichtbar): FOCAL_MIN ... FOCAL_MAX mm
 barSlider(barH, f => { setFocalLength(Math.round(FOCAL_MIN + f * (FOCAL_MAX - FOCAL_MIN))); syncFocalBar(); });
 function syncFocalBar() {
-  if (!isTouch) return;
+  if (!uiMode) return;
   focalBarLabel.textContent = t('angle.label', focalLength.toFixed(0));
   placeBarKnob(barH, barHKnob, (focalLength - FOCAL_MIN) / (FOCAL_MAX - FOCAL_MIN));
 }
@@ -1351,7 +1359,7 @@ function adjustLensShiftByKeys(delta) {
   if (!dir) return;
   lensShift = Math.max(-0.5, Math.min(0.5, lensShift + dir * 0.25 * Math.min(delta, 0.1)));
   applyLensShift();
-  if (!isTouch) showToast(t('shift.toast', lensShift.toFixed(2)));   // Mobile: Wert steht dauerhaft links
+  if (!uiMode) showToast(t('shift.toast', lensShift.toFixed(2)));   // Bildschirm-Layer: Wert steht dauerhaft links
 }
 
 // Desktop: E = schneller, R = langsamer (solange gehalten, stufenlos)
@@ -1426,51 +1434,42 @@ function applyLook(dx, dy) {
   lookEuler.x = Math.max(-MAX_PITCH, Math.min(MAX_PITCH, lookEuler.x));
   camera.quaternion.setFromEuler(lookEuler);
 }
-if (isTouch) {
+{
   const look = { id:null, x:0, y:0 };
   const isControl = el => el.closest && el.closest('#bar-h,#bar-speed,#joy,#flight-updown,#level-btn,#shift-up-btn,#shift-down-btn,#coll-btn,#shot-btn,#flight-btn,#pause-btn,#overlay,#upload-screen,#loader');
-  document.addEventListener('touchstart', e => {
-    if (!touchActive || look.id !== null) return;
-    for (const t of e.changedTouches) {
-      if (isControl(t.target)) continue;
-      look.id = t.identifier; look.x = t.clientX; look.y = t.clientY;
-      break;
-    }
-  }, {passive:true});
-  document.addEventListener('touchmove', e => {
-    for (const t of e.changedTouches) {
-      if (t.identifier !== look.id) continue;
-      applyLook(t.clientX - look.x, t.clientY - look.y);
-      look.x = t.clientX; look.y = t.clientY;
-    }
-  }, {passive:true});
-  const endLook = e => { for (const t of e.changedTouches) if (t.identifier === look.id) look.id = null; };
-  document.addEventListener('touchend',    endLook, {passive:true});
-  document.addEventListener('touchcancel', endLook, {passive:true});
-
-  // Doppel-Tipp (zwei kurze Tipper dicht beieinander) -> zum Punkt fahren
   const taps = {};
   let lastTap = { t: 0, x: 0, y: 0 };
-  document.addEventListener('touchstart', e => {
-    if (!touchActive) return;
-    for (const t of e.changedTouches) {
-      if (isControl(t.target)) continue;
-      taps[t.identifier] = { t: performance.now(), x: t.clientX, y: t.clientY };
+  document.addEventListener('pointerdown', e => {
+    if (!(uiMode && touchActive)) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    if (isControl(e.target)) return;
+    taps[e.pointerId] = { t: performance.now(), x: e.clientX, y: e.clientY };
+    if (look.id === null) {
+      look.id = e.pointerId; look.x = e.clientX; look.y = e.clientY;
+      try { e.target.setPointerCapture(e.pointerId); } catch (_) {}
     }
-  }, {passive:true});
-  document.addEventListener('touchend', e => {
-    for (const t of e.changedTouches) {
-      const st = taps[t.identifier]; if (!st) continue;
-      delete taps[t.identifier];
-      const now = performance.now();
-      if (now - st.t > 250 || Math.hypot(t.clientX - st.x, t.clientY - st.y) > 12) continue;   // Wischen/Halten ist kein Tipp
-      if (now - lastTap.t < 350 && Math.hypot(st.x - lastTap.x, st.y - lastTap.y) < 40) {
-        lastTap.t = 0;
-        startTravelTo((t.clientX / window.innerWidth) * 2 - 1, -(t.clientY / window.innerHeight) * 2 + 1);
-      } else lastTap = { t: now, x: st.x, y: st.y };
-    }
-  }, {passive:true});
-  document.addEventListener('touchcancel', e => { for (const t of e.changedTouches) delete taps[t.identifier]; }, {passive:true});
+  });
+  document.addEventListener('pointermove', e => {
+    if (e.pointerId !== look.id) return;
+    applyLook(e.clientX - look.x, e.clientY - look.y);
+    look.x = e.clientX; look.y = e.clientY;
+  });
+  const endPointer = e => {
+    if (e.pointerId === look.id) look.id = null;
+    const st = taps[e.pointerId];
+    if (!st) return;
+    delete taps[e.pointerId];
+    if (e.type === 'pointercancel') return;
+    const now = performance.now();
+    if (now - st.t > 250 || Math.hypot(e.clientX - st.x, e.clientY - st.y) > 12) return;   // Ziehen/Halten ist kein Tipp
+    // Doppel-Tipp bzw. Doppelklick (zwei kurze Tipper dicht beieinander) -> zum Punkt fahren
+    if (now - lastTap.t < 350 && Math.hypot(st.x - lastTap.x, st.y - lastTap.y) < 40) {
+      lastTap.t = 0;
+      startTravelTo((e.clientX / window.innerWidth) * 2 - 1, -(e.clientY / window.innerHeight) * 2 + 1);
+    } else lastTap = { t: now, x: st.x, y: st.y };
+  };
+  document.addEventListener('pointerup', endPointer);
+  document.addEventListener('pointercancel', endPointer);
 }
 
 // ── Q / Level-Taste: Kamera horizontal stellen ───────────────────
@@ -1491,17 +1490,11 @@ function updateLevel(delta) {
   lookEuler.x *= Math.exp(-14 * Math.min(delta, 0.1));   // ca. 0.3 s bis horizontal
   camera.quaternion.setFromEuler(lookEuler);
 }
-if (isTouch) {
-  levelBtn.addEventListener('touchstart', e => { e.preventDefault(); startLevel(); }, {passive:false});
-  // Shift Y per Touch: gedrückt halten = Bild stufenlos verschieben (Sky = mehr Himmel, Ground = mehr Boden)
-  const holdKey = (btn, key) => {
-    btn.addEventListener('touchstart',  e => { e.preventDefault(); keys[key] = true; }, {passive:false});
-    btn.addEventListener('touchend',    () => { keys[key] = false; });
-    btn.addEventListener('touchcancel', () => { keys[key] = false; });
-  };
-  holdKey(shiftUpBtn, 'skyUp');
-  holdKey(shiftDownBtn, 'skyDown');
-}
+bindPress(levelBtn, { down: () => startLevel() });
+// Shift Y: gedrückt halten = Bild stufenlos verschieben (Sky = mehr Himmel, Ground = mehr Boden)
+const holdKey = (btn, key) => bindPress(btn, { down: () => { keys[key] = true; }, up: () => { keys[key] = false; } });
+holdKey(shiftUpBtn, 'skyUp');
+holdKey(shiftDownBtn, 'skyDown');
 
 // ── Prompt für die Bild-Erzeugung + Zwischenablage ──────────────
 (function () {
@@ -1924,26 +1917,21 @@ function runAutoTravel(delta, pivot) {
 
 function updateMovement(delta){
   updateLevel(delta);
-  if (!isTouch && controls.isLocked) { adjustSpeedByKeys(delta); adjustLensShiftByKeys(delta); }
-  else if (isTouch && touchActive) adjustLensShiftByKeys(delta);
+  if (playing()) { adjustSpeedByKeys(delta); adjustLensShiftByKeys(delta); }
   const pivot=controls.getObject();
   const speed=MOVE_SPEED*delta;
   camera.getWorldDirection(tmpVec); tmpVec.y=0; tmpVec.normalize();
   const right=new THREE.Vector3().crossVectors(tmpVec,camera.up).normalize();
   moveDir.set(0,0,0);
 
-  if (!isTouch) {
-    if(!controls.isLocked) return;
-    if(keys.w) moveDir.addScaledVector(tmpVec, 1);
-    if(keys.s) moveDir.addScaledVector(tmpVec,-1);
-    if(keys.a) moveDir.addScaledVector(right, -1);
-    if(keys.d) moveDir.addScaledVector(right,  1);
-  } else {
-    if (!touchActive) return;
-    // Balken sind analog: halber Ausschlag = halbe Geschwindigkeit
-    if (Math.abs(fwdBar.v)    > 0.1) moveDir.addScaledVector(tmpVec, -fwdBar.v);
-    if (Math.abs(strafeBar.v) > 0.1) moveDir.addScaledVector(right,   strafeBar.v);
-  }
+  if (!playing()) return;
+  // Tastatur (WASD) und Bildschirm-Joystick wirken zusammen; der Joystick ist analog
+  if(keys.w) moveDir.addScaledVector(tmpVec, 1);
+  if(keys.s) moveDir.addScaledVector(tmpVec,-1);
+  if(keys.a) moveDir.addScaledVector(right, -1);
+  if(keys.d) moveDir.addScaledVector(right,  1);
+  if (Math.abs(fwdBar.v)    > 0.1) moveDir.addScaledVector(tmpVec, -fwdBar.v);
+  if (Math.abs(strafeBar.v) > 0.1) moveDir.addScaledVector(right,   strafeBar.v);
   if (autoTravel) {
     if (hasManualInput()) autoTravel = null;           // jede Eingabe übernimmt sofort wieder
     else { runAutoTravel(delta, pivot); return; }

@@ -23,8 +23,11 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
 #load-error{display:none;width:min(620px,92vw);padding:10px 14px;border:1px solid #b00020;color:#b00020;text-align:center;line-height:1.5;word-break:break-word}
 #upload-screen .prompt-box{width:min(620px,92vw);margin-top:-14px;margin-bottom:-14px;text-align:left;color:#555555;line-height:1.6;letter-spacing:0.03em}
 #upload-screen .prompt-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px;color:#000000}
-#prompt-text{white-space:pre-line}
-#upload-screen .title-row{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap}
+#upload-screen .prompt-title{margin-bottom:8px;color:#000000}
+#prompt-ext,#prompt-int{white-space:pre-line;margin-bottom:12px}
+#upload-screen .title-row{width:min(620px,92vw);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-gap:12px}
+#upload-screen .title-row h1{grid-column:2}
+#upload-screen .title-row #lang-btn{grid-column:3;justify-self:end}
 #upload-screen .steps{width:min(620px,92vw);margin-top:-14px;padding-left:1.2em;letter-spacing:0.03em;color:#555555;text-align:left;line-height:1.6}
 #upload-screen .intro{width:min(620px,92vw);letter-spacing:0.03em;color:#555555;text-align:center;line-height:1.6;margin-top:-14px}
 
@@ -182,11 +185,17 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
     <li>Apply a prompt template, optimize the visualization in a targeted manner</li>
   </ul>
   <div class="prompt-box">
+    <div class="prompt-title">prompt for image generation:</div>
     <div class="prompt-head">
-      <span>prompt for image generation:</span>
-      <button type="button" id="copy-prompt-btn" class="set-btn" data-dyn>Copy</button>
+      <span>exterior</span>
+      <button type="button" id="copy-ext-btn" class="set-btn" data-dyn>Copy</button>
     </div>
-    <p id="prompt-text" data-dyn></p>
+    <p id="prompt-ext" data-dyn></p>
+    <div class="prompt-head">
+      <span>interior</span>
+      <button type="button" id="copy-int-btn" class="set-btn" data-dyn>Copy</button>
+    </div>
+    <p id="prompt-int" data-dyn></p>
   </div>
 
   <div class="room-grid" id="room-grid" data-dyn>
@@ -563,8 +572,8 @@ const I18N = {
     'err.open': (w, m) => 'Could not open ' + w + ': ' + m, 'err.unknown': 'unknown error',
     'info.desktop': 'WASD move  |  E/R speed  |  TAB walk / fly  |  Q level  |  Mouse look  |  ESC pause',
     'title.skyUp': 'Shift Y: more sky', 'title.skyDown': 'Shift Y: more ground',
-    'prompt': 'Make the materials and surfaces in the scene appear more realistic, without altering the framing or the camera position. The composition of the image should remain unchanged.\n' +
-              'Add a few people to the scene; include a green horizon and a blue sky with a few small, white clouds.'
+    'prompt.ext': 'Make the materials and surfaces in the scene appear more realistic, without altering the framing, the camera position, the perspective, or the composition of the image. The existing arrangement of all elements must remain unchanged. Everything should look brand new. Add a natural green horizon and a clear blue sky with a few small, white clouds. Do not add any new boundaries, paths or roads. The foreground surfaces should consist of a light, fine gravel surface.',
+    'prompt.int': 'Make the materials and surfaces in the scene appear more realistic, without altering the framing, the camera position, the perspective, or the composition of the image. The existing arrangement of all elements must remain unchanged. Everything should look brand new. Add some incoming sunlight. Option: Add a person who is talking on the phone.'
   },
   de: {
     'mode.walk': 'Geh-Modus', 'mode.fly': 'Flug-Modus', 'on': 'An', 'off': 'Aus', 'ui.keyboard': 'Tastatur', 'ui.screen': 'Bildschirm',
@@ -578,8 +587,8 @@ const I18N = {
     'err.open': (w, m) => 'Konnte ' + w + ' nicht öffnen: ' + m, 'err.unknown': 'unbekannter Fehler',
     'info.desktop': 'WASD bewegen  |  E/R Tempo  |  TAB gehen / fliegen  |  Q Horizont  |  Maus umsehen  |  ESC Pause',
     'title.skyUp': 'Shift Y: mehr Himmel', 'title.skyDown': 'Shift Y: mehr Boden',
-    'prompt': 'Lasse die Materialien und Oberflächen in der Szene realistischer wirken, ohne den Bildausschnitt oder die Kameraposition zu verändern. Die Bildkomposition soll unverändert bleiben.\n' +
-              'Füge der Szene ein paar Personen hinzu; ergänze einen grünen Horizont und einen blauen Himmel mit ein paar kleinen, weißen Wolken.'
+    'prompt.ext': 'Lasse die Materialien und Oberflächen in der Szene realistischer wirken, ohne den Bildausschnitt, die Kameraposition, die Perspektive oder die Bildkomposition zu verändern. Die bestehende Anordnung aller Elemente muss unverändert bleiben. Alles soll neuwertig erscheinen. Ergänze einen natürlichen grünen Horizont sowie einen klaren blauen Himmel mit einigen kleinen, weißen Wolken. Füge keine neuen Begrenzungen, Wege oder Straßen hinzu. Die vorderen Flächen sollen aus einer hellen, feinen Schotterfläche bestehen.',
+    'prompt.int': 'Lasse die Materialien und Oberflächen in der Szene realistischer wirken, ohne den Bildausschnitt, die Kameraposition, die Perspektive oder die Bildkomposition zu verändern. Die bestehende Anordnung aller Elemente muss unverändert bleiben. Alles soll neuwertig erscheinen. Ergänze etwas einfallendes Sonnenlicht. Option: Füge eine Person hinzu, die telefoniert.'
   }
 };
 let lang = 'en';
@@ -609,8 +618,10 @@ function applyLanguage() {
   document.documentElement.lang = lang;
   translateStaticNodes();
   document.getElementById('lang-btn').textContent = lang === 'en' ? 'Deutsch' : 'English';
-  document.getElementById('prompt-text').textContent = t('prompt');
-  document.getElementById('copy-prompt-btn').textContent = t('copy');
+  document.getElementById('prompt-ext').textContent = t('prompt.ext');
+  document.getElementById('prompt-int').textContent = t('prompt.int');
+  document.getElementById('copy-ext-btn').textContent = t('copy');
+  document.getElementById('copy-int-btn').textContent = t('copy');
   statusText.textContent = t('load.model');
   shiftUpBtn.title = t('title.skyUp');
   shiftDownBtn.title = t('title.skyDown');
@@ -1497,21 +1508,23 @@ holdKey(shiftUpBtn, 'skyUp');
 holdKey(shiftDownBtn, 'skyDown');
 
 // ── Prompt für die Bild-Erzeugung + Zwischenablage ──────────────
-(function () {
-  const btn = document.getElementById('copy-prompt-btn');
+function setupCopyButton(btnId, promptKey) {
+  const btn = document.getElementById(btnId);
   const done = () => { btn.textContent = t('copied'); setTimeout(() => { btn.textContent = t('copy'); }, 1500); };
   const fallback = () => {                       // ältere Browser / kein HTTPS
     const ta = document.createElement('textarea');
-    ta.value = t('prompt'); ta.style.position = 'fixed'; ta.style.opacity = '0';
+    ta.value = t(promptKey); ta.style.position = 'fixed'; ta.style.opacity = '0';
     document.body.appendChild(ta); ta.select();
     try { document.execCommand('copy'); done(); } catch (e) { btn.textContent = t('copyfail'); }
     ta.remove();
   };
   btn.addEventListener('click', () => {
-    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t('prompt')).then(done, fallback);
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t(promptKey)).then(done, fallback);
     else fallback();
   });
-})();
+}
+setupCopyButton('copy-ext-btn', 'prompt.ext');
+setupCopyButton('copy-int-btn', 'prompt.int');
 
 // ── Räume dynamisch generieren ───────────────────────────────────
 function buildRoomCards() {

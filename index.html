@@ -25,6 +25,8 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
 #upload-screen .prompt-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px;color:#000000}
 #upload-screen .prompt-title{margin-bottom:8px;color:#000000}
 #prompt-ext,#prompt-int{white-space:pre-line;margin-bottom:12px}
+#upload-screen .compare-note{margin-top:4px}
+#upload-screen .compare-note a{color:#000000;text-decoration:underline}
 #upload-screen .title-row{width:min(620px,92vw);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-gap:12px}
 #upload-screen .title-row h1{grid-column:2}
 #upload-screen .title-row #lang-btn{grid-column:3;justify-self:end}
@@ -196,6 +198,7 @@ body{background:#ffffff;color:#000000;font-family:Arial,Helvetica,sans-serif;fon
       <button type="button" id="copy-int-btn" class="set-btn" data-dyn>Copy</button>
     </div>
     <p id="prompt-int" data-dyn></p>
+    <p class="compare-note">Compare several images using transparency: <a href="https://3dschwartz.github.io/Compare_images/" target="_blank" rel="noopener">Image comparison</a></p>
   </div>
 
   <div class="room-grid" id="room-grid" data-dyn>
@@ -535,6 +538,8 @@ const STATIC_DE = {
   'Create a screenshot, send the screenshot to the AI': 'Erstelle einen Screenshot und sende ihn an die KI',
   'Apply a prompt template, optimize the visualization in a targeted manner': 'Nutze eine Prompt-Vorlage und optimiere die Visualisierung gezielt',
   'prompt for image generation:': 'Prompt für die Bilderzeugung:',
+  'Compare several images using transparency:': 'Mehrere Bilder mit Hilfe von Transparenz vergleichen:',
+  'Image comparison': 'Bildvergleich',
   'Drag or upload your own 3D scan / design here.': 'Ziehe deinen eigenen 3D-Scan / Entwurf hierher oder lade ihn hoch.',
   'The 3D file format is GLB (.glb).': 'Das 3D-Dateiformat ist GLB (.glb).',
   // Hinweise (Desktop)
@@ -706,7 +711,7 @@ scene.background = currentBgColor;
 scene.fog = null; // Nebel deaktiviert - Sichtweite jetzt bis zur Far-Plane der Kamera (600m)
 
 // ── Kamera ───────────────────────────────────────────────────────
-const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.05, 650);
+const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.05, 6000);
 
 // ── VR-Rig (Dolly) ───────────────────────────────────────────────
 // WICHTIG: PointerLockControls (moderne three.js-Versionen) bewegt die
